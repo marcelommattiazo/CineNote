@@ -1142,7 +1142,7 @@ const PREFIXO = 'minha-cinemateca';
 const ONEDRIVE_CLIENT_ID = 'b5815c83-06aa-4229-ae1f-81b4cdd536b9';
 const TMDB_API = 'https://api.themoviedb.org/3/';
 const TMDB_IMG = 'https://image.tmdb.org/t/p/';
-const VERSAO_APP = '2026.09.29-2200';
+const VERSAO_APP = '2026.09.29-2305';
 
 const GENEROS = [
   ['acao', 'Ação'],
@@ -2592,6 +2592,7 @@ function telaBoasVindas() {
       <div class="acoes" style="margin-top:20px">
         <button type="button" class="botao primario" data-acao="registrar">${icone('mais', 18, { traco: 2.4 })}Registrar o primeiro</button>
         <button type="button" class="botao" data-acao="importar-letterboxd">Importar do Letterboxd</button>
+        <button type="button" class="botao" data-acao="importar-serializd">Importar do Serializd</button>
       </div>
     </section>
     ${chaveTMDB() ? '' : `<section class="secao">${cartaoChaveHTML()}</section>`}
@@ -3086,6 +3087,7 @@ function telaConfig() {
     </div>
     <div class="acoes">
       <button type="button" class="botao pequeno" data-acao="importar-letterboxd">Importar do Letterboxd</button>
+      <button type="button" class="botao pequeno" data-acao="importar-serializd">Importar do Serializd</button>
       <button type="button" class="botao pequeno" data-acao="exportar-letterboxd"${dados.registros.length ? '' : ' disabled'}>Exportar para o Letterboxd</button>
       <button type="button" class="botao pequeno" data-acao="exportar-excel"${dados.registros.length ? '' : ' disabled'}>Exportar para Excel</button>
     </div>`;
@@ -4661,6 +4663,403 @@ async function atualizarTudoDoTMDB() {
 }
 
 
+/* ===== Serializd =====
+   O Serializd não tem exportação. O diário de cada perfil é público e sai da
+   API interna do próprio site (não documentada, pode mudar sem aviso).
+   coletarSerializd não usa nada do app: ela roda aqui dentro e também vira o
+   comando que a pessoa cola no Console do serializd.com quando o Serializd
+   não deixa um site de fora ler os dados. */
+
+async function coletarSerializd(usuario, informar) {
+  const api = 'https://serializd.onrender.com/api/';
+  const pegar = async caminho => {
+    const resposta = await fetch(api + caminho, { headers: { 'X-Requested-With': 'serializd_vercel' } });
+    const corpo = await resposta.json().catch(() => ({}));
+    if (!resposta.ok) throw Object.assign(new Error('O Serializd respondeu com erro ' + resposta.status + '.'), { status: resposta.status });
+    return corpo;
+  };
+  const nome = String(usuario || '').trim().replace(/^@/, '');
+  const u = encodeURIComponent(nome);
+  const diario = [];
+  for (let pagina = 1, total = 1; pagina <= total && pagina <= 400; pagina++) {
+    const d = await pegar('user/' + u + '/diary?page=' + pagina);
+    if (d && d.message && !Array.isArray(d.reviews)) {
+      throw Object.assign(new Error(d.message), { usuarioInvalido: /invalid user/i.test(d.message) });
+    }
+    total = Math.max(1, Number(d.totalPages) || 1);
+    diario.push(...(Array.isArray(d.reviews) ? d.reviews : []));
+    informar('Diário: página ' + pagina + ' de ' + total);
+  }
+  const lista = async (caminho, rotulo) => {
+    const itens = [];
+    try {
+      for (let pagina = 1, total = 1; pagina <= total && pagina <= 200; pagina++) {
+        const d = await pegar('user/' + u + '/' + caminho + '/' + pagina + '?sort_by=');
+        total = Math.max(1, Number(d.totalPages) || 1);
+        itens.push(...(Array.isArray(d.items) ? d.items : []));
+        informar(rotulo + ': página ' + pagina + ' de ' + total);
+      }
+    } catch (e) {
+      if (e instanceof TypeError) throw e;
+    }
+    return itens;
+  };
+  const assistindo = await lista('currently_watching_page', 'Assistindo');
+  const pausadas = await lista('paused_shows_page', 'Pausadas');
+  const abandonadas = await lista('dropped_shows_page', 'Abandonadas');
+  const vistas = await lista('watchedpage_v2', 'Vistas');
+  const precisa = new Set();
+  for (const v of vistas) {
+    if (Array.isArray(v.seasonIds) && v.seasonIds.length) precisa.add(v.showId);
+  }
+  for (const r of diario) {
+    const conhecidas = Array.isArray(r.showSeasons) ? r.showSeasons : [];
+    if (r.seasonId && !conhecidas.some(s => s.id === r.seasonId)) precisa.add(r.showId);
+  }
+  const temporadas = {};
+  let feitas = 0;
+  for (const id of precisa) {
+    try {
+      const s = await pegar('show/' + id);
+      const mapa = {};
+      for (const t of (s && s.seasons) || []) {
+        const numero = t.seasonNumber;
+        const sid = t.id != null ? t.id : t.seasonId;
+        if (numero != null && sid != null) mapa[sid] = numero;
+      }
+      temporadas[id] = mapa;
+    } catch (e) {
+      if (e instanceof TypeError) throw e;
+    }
+    feitas++;
+    informar('Temporadas: ' + feitas + ' de ' + precisa.size + ' séries');
+  }
+  return { formato: 'serializd-para-cinemateca', versao: 1, usuario: nome, geradoEm: new Date().toISOString(), diario, assistindo, pausadas, abandonadas, vistas, temporadas };
+}
+
+function comandoSerializd(usuario) {
+  return `(${coletarSerializd.toString()})(${JSON.stringify(usuario)}, console.log).then(dados => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(dados)], { type: 'application/json' }));
+  a.download = 'serializd-' + dados.usuario + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  console.log('Pronto: ' + dados.diario.length + ' registros salvos em ' + a.download + '. Volte para a Minha cinemateca e escolha esse arquivo.');
+}).catch(e => console.error('Não deu certo: ' + e.message));`;
+}
+
+/* ----- Janelas ----- */
+
+function statusSerializd(texto) {
+  const el = document.querySelector('#modal [data-status-serializd]');
+  if (el) el.textContent = texto;
+  return !!el;
+}
+
+function abrirImportacaoSerializd() {
+  estado.formulario = { tipo: 'serializd' };
+  abrirModal({
+    titulo: 'Importar do Serializd',
+    corpo: `<p>O Serializd não tem botão de exportar, mas o diário de cada perfil é público. O app lê as temporadas que você registrou, com data, nota, revisões e resenhas, e as séries que você marcou como assistindo, pausadas, abandonadas ou vistas.</p>
+      <label class="campo" style="margin-top:16px"><span>Seu nome de usuário no Serializd</span><input type="text" data-usuario-serializd autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="o mesmo que aparece no seu perfil" enterkeyhint="go"></label>
+      ${chaveTMDB() ? '' : `<div style="margin-top:16px">${cartaoChaveHTML({ contexto: 'serializd' })}</div>`}
+      <p class="detalhe" data-status-serializd style="margin-top:12px" aria-live="polite"></p>
+      <p class="ajuda" style="margin-top:14px">Já tem o arquivo serializd-….json? <button type="button" class="link" data-acao="escolher-arquivo-serializd">Escolher arquivo</button></p>`,
+    rodape: `<button type="button" class="botao" data-acao="fechar-modal">Cancelar</button><button type="button" class="botao primario" data-acao="ler-serializd"${chaveTMDB() ? '' : ' disabled'}>Ler o diário</button>`,
+  });
+  setTimeout(() => { const c = document.querySelector('[data-usuario-serializd]'); if (c) c.focus(); }, 60);
+}
+
+async function lerSerializdDireto() {
+  const campo = document.querySelector('[data-usuario-serializd]');
+  const usuario = ((campo && campo.value) || '').trim().replace(/^@/, '');
+  if (!usuario) {
+    statusSerializd('Escreva o seu nome de usuário no Serializd.');
+    if (campo) campo.focus();
+    return;
+  }
+  const botao = document.querySelector('#modal [data-acao="ler-serializd"]');
+  if (botao) botao.disabled = true;
+  statusSerializd('Lendo o diário. Se o Serializd estiver acordando, a primeira resposta pode levar meio minuto.');
+  try {
+    const dados = await coletarSerializd(usuario, statusSerializd);
+    mostrarPlanoSerializd(dados);
+  } catch (e) {
+    if (botao) botao.disabled = false;
+    if (e instanceof TypeError) {
+      abrirComandoSerializd(usuario);
+    } else if (e.usuarioInvalido) {
+      statusSerializd('Esse usuário não existe no Serializd. Confira o nome como aparece no seu perfil.');
+    } else {
+      statusSerializd(`${e.message} Tente de novo em instantes.`);
+    }
+  }
+}
+
+function abrirComandoSerializd(usuario) {
+  const comando = comandoSerializd(usuario);
+  estado.formulario = { tipo: 'serializd', usuario, comando };
+  abrirModal({
+    titulo: 'Importar do Serializd',
+    corpo: `<p>O Serializd não deixou o app ler o diário direto daqui. Dá para fazer em dois minutos pelo computador, com a cinemateca aberta nele, usando o próprio site do Serializd:</p>
+      <ol class="passos">
+        <li>No computador, abra serializd.com no Chrome ou no Edge.</li>
+        <li>Aperte F12 e clique na aba Console.</li>
+        <li>Toque em Copiar comando, aqui embaixo, cole no Console e aperte Enter. Se o navegador pedir, digite allow pasting e aperte Enter antes de colar.</li>
+        <li>Espere o arquivo serializd-${esc(usuario)}.json ser baixado e escolha esse arquivo aqui.</li>
+      </ol>
+      <p class="ajuda" style="margin-top:12px">O comando só lê o diário público do seu perfil e salva tudo num arquivo. Ele não pede senha nem muda nada no Serializd.</p>
+      <details style="margin-top:12px"><summary class="link">Ver o comando</summary><textarea readonly rows="6" data-comando-serializd style="margin-top:8px;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace">${esc(comando)}</textarea></details>
+      <p class="detalhe" data-status-serializd style="margin-top:12px" aria-live="polite"></p>`,
+    rodape: '<button type="button" class="botao" data-acao="copiar-comando-serializd">Copiar comando</button><button type="button" class="botao primario" data-acao="escolher-arquivo-serializd">Escolher arquivo</button>',
+  });
+}
+
+async function copiarComandoSerializd() {
+  const f = estado.formulario;
+  if (!f || !f.comando) return;
+  try {
+    await navigator.clipboard.writeText(f.comando);
+    statusSerializd('Comando copiado. Cole no Console do serializd.com e aperte Enter.');
+  } catch (e) {
+    const area = document.querySelector('[data-comando-serializd]');
+    if (area) {
+      area.closest('details').open = true;
+      area.focus();
+      area.select();
+    }
+    statusSerializd('Não deu para copiar sozinho: o comando ficou selecionado acima. Copie com Ctrl+C.');
+  }
+}
+
+async function lerArquivoSerializd(arquivo) {
+  let dados = null;
+  try {
+    dados = JSON.parse((await arquivo.text()).replace(/^\uFEFF/, ''));
+  } catch (e) {
+    dados = null;
+  }
+  const valido = dados && (Array.isArray(dados) || Array.isArray(dados.diario) || Array.isArray(dados.reviews));
+  if (!valido) {
+    const texto = 'Esse arquivo não é o que o comando do Serializd gera. Escolha o serializd-….json baixado.';
+    if (!statusSerializd(texto)) avisar(texto);
+    return;
+  }
+  mostrarPlanoSerializd(dados);
+}
+
+/* ----- Plano ----- */
+
+function dataSerializd(valor) {
+  if (!valor) return null;
+  const texto = String(valor);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(texto)) return texto;
+  if (/^\d{4}-\d{2}-\d{2}T00:00(:00(\.0+)?)?(Z|\+00:00)?$/.test(texto)) return texto.slice(0, 10);
+  const d = new Date(texto);
+  return isNaN(d) ? null : isoLocal(d);
+}
+
+function planoSerializd(arquivo) {
+  const diario = Array.isArray(arquivo) ? arquivo : (arquivo.diario || arquivo.reviews || []);
+  const mapas = (!Array.isArray(arquivo) && arquivo.temporadas) || {};
+  const series = new Map();
+  const pegar = (id, nome) => {
+    if (!series.has(id)) series.set(id, { tmdb: id, nome: '', registros: [], semData: new Set(), serieVista: false, situacao: '', curtiu: false });
+    const s = series.get(id);
+    if (!s.nome && nome) s.nome = String(nome);
+    return s;
+  };
+  const numeroDaTemporada = (showId, seasonId, entrada) => {
+    const lista = entrada && Array.isArray(entrada.showSeasons) ? entrada.showSeasons : [];
+    const achada = lista.find(s => s.id === seasonId);
+    if (achada && Number.isInteger(achada.seasonNumber)) return achada.seasonNumber;
+    const mapa = mapas[showId];
+    if (mapa && mapa[seasonId] !== undefined && mapa[seasonId] !== null) return Number(mapa[seasonId]);
+    const texto = /(\d+)/.exec((entrada && entrada.seasonName) || '');
+    return texto ? Number(texto[1]) : undefined;
+  };
+  let episodios = 0;
+  let especiais = 0;
+  let ignorados = 0;
+  for (const e of diario) {
+    const showId = inteiroOuNulo(e && e.showId, 1);
+    if (!showId) { ignorados++; continue; }
+    if (Number(e.episodeNumber) > 0) { episodios++; continue; }
+    let temporada = null;
+    if (e.seasonId) {
+      const n = numeroDaTemporada(showId, e.seasonId, e);
+      if (n === 0) { especiais++; continue; }
+      if (n === undefined) { ignorados++; continue; }
+      temporada = n;
+    }
+    const s = pegar(showId, e.showName);
+    s.registros.push({
+      data: dataSerializd(e.backdate || e.dateAdded),
+      nota: Number(e.rating) > 0 ? notaValida(Number(e.rating) / 2) : null,
+      temporada,
+      revisto: !!e.isRewatched,
+      comentario: String(e.reviewText || '').trim(),
+      tags: [],
+    });
+    if (e.like === true) s.curtiu = true;
+  }
+  if (!Array.isArray(arquivo)) {
+    for (const [lista, situacao] of [[arquivo.abandonadas, 'abandonada'], [arquivo.pausadas, 'pausada'], [arquivo.assistindo, 'assistindo']]) {
+      for (const item of lista || []) {
+        const id = inteiroOuNulo(item && item.showId, 1);
+        if (!id) continue;
+        const s = pegar(id, item.showName);
+        if (!s.situacao) s.situacao = situacao;
+      }
+    }
+    for (const item of arquivo.vistas || []) {
+      const id = inteiroOuNulo(item && item.showId, 1);
+      if (!id) continue;
+      const s = pegar(id, item.showName);
+      const ids = Array.isArray(item.seasonIds) ? item.seasonIds : [];
+      if (!ids.length) { s.serieVista = true; continue; }
+      for (const sid of ids) {
+        const n = numeroDaTemporada(id, sid, null);
+        if (n > 0) s.semData.add(n);
+      }
+    }
+  }
+  let registros = 0;
+  let semData = 0;
+  for (const s of series.values()) {
+    const comRegistro = new Set(s.registros.map(r => r.temporada).filter(n => n !== null));
+    for (const n of [...s.semData]) if (comRegistro.has(n)) s.semData.delete(n);
+    if (s.serieVista && (s.registros.length || s.semData.size)) s.serieVista = false;
+    const soltos = s.semData.size + (s.serieVista ? 1 : 0);
+    registros += s.registros.length + soltos;
+    semData += soltos + s.registros.filter(r => !r.data).length;
+  }
+  const lista = [...series.values()];
+  return { series: lista, registros, semData, episodios, especiais, ignorados, comSituacao: lista.filter(s => s.situacao).length };
+}
+
+function mostrarPlanoSerializd(arquivo) {
+  const plano = planoSerializd(arquivo);
+  if (!plano.series.length) {
+    const texto = 'Nenhuma série encontrada nesse diário.';
+    if (!statusSerializd(texto)) avisar(texto);
+    return;
+  }
+  estado.formulario = { tipo: 'serializd', plano };
+  abrirModal({
+    titulo: 'Importar do Serializd',
+    corpo: `<p class="resumo" style="margin:4px 0 12px">${plural(plano.series.length, 'série', 'séries')} e ${plural(plano.registros, 'registro', 'registros')} encontrados.</p>
+      <ul class="lista-simples">
+        ${plano.semData ? `<li>${plural(plano.semData, 'registro não tem data e vai', 'registros não têm data e vão')} para o fim do diário, em Sem data.</li>` : ''}
+        ${plano.comSituacao ? `<li>${plural(plano.comSituacao, 'série leva', 'séries levam')} a situação que está no Serializd: assistindo, pausada ou abandonada.</li>` : ''}
+        ${plano.episodios ? `<li>${plural(plano.episodios, 'registro de episódio fica', 'registros de episódios ficam')} de fora, porque a cinemateca registra temporadas inteiras.</li>` : ''}
+        ${plano.especiais ? `<li>${plural(plano.especiais, 'registro de episódios especiais fica', 'registros de episódios especiais ficam')} de fora.</li>` : ''}
+        ${plano.ignorados ? `<li>${plural(plano.ignorados, 'registro sem série reconhecível fica', 'registros sem série reconhecível ficam')} de fora.</li>` : ''}
+        <li>O Serializd não guarda onde você assistiu. Dá para completar depois, editando cada registro.</li>
+      </ul>
+      <label class="opcao-check"><input type="checkbox" name="pular" checked> Pular registros que já estão no diário, com a mesma série, temporada e data</label>`,
+    rodape: '<button type="button" class="botao" data-acao="fechar-modal">Cancelar</button><button type="button" class="botao primario" data-acao="executar-importacao-serializd">Importar</button>',
+  });
+}
+
+/* ----- Importação ----- */
+
+async function executarImportacaoSerializd() {
+  const f = estado.formulario;
+  if (!f || !f.plano) return;
+  const pular = !!(document.querySelector('#modal [name="pular"]') || {}).checked;
+  const plano = f.plano;
+  estado.lote = { cancelado: false };
+  abrirModal({
+    titulo: 'Importando',
+    corpo: '<p data-lote-texto>Procurando as séries no TMDB…</p><div class="progresso-lote"><span data-lote-barra style="width:0%"></span></div><p class="detalhe" data-lote-detalhe></p>',
+    rodape: '<button type="button" class="botao" data-acao="cancelar-lote">Parar</button>',
+  });
+  const fila = plano.series.map((serie, i) => ({ serie, i }));
+  const metas = new Array(plano.series.length).fill(null);
+  const feitas = new Set();
+  let erroFatal = null;
+  const trabalhar = async () => {
+    while (fila.length && !estado.lote.cancelado && !erroFatal) {
+      const { serie, i } = fila.shift();
+      try {
+        metas[i] = await detalhesDoTMDB('serie', serie.tmdb);
+      } catch (e) {
+        if (e.tipo === 'chave' || e.tipo === 'sem-chave') erroFatal = e;
+      }
+      feitas.add(i);
+      const texto = document.querySelector('[data-lote-texto]');
+      const barra = document.querySelector('[data-lote-barra]');
+      const detalhe = document.querySelector('[data-lote-detalhe]');
+      if (texto) texto.textContent = `${feitas.size} de ${plano.series.length} séries procuradas`;
+      if (barra) barra.style.width = `${feitas.size / plano.series.length * 100}%`;
+      if (detalhe) detalhe.textContent = serie.nome;
+    }
+  };
+  await Promise.all([trabalhar(), trabalhar(), trabalhar(), trabalhar()]);
+  const cancelado = estado.lote.cancelado;
+  estado.lote = null;
+  if (erroFatal) {
+    abrirModal({ titulo: 'Importação interrompida', corpo: `<p>${esc(explicarErroTMDB(erroFatal))}</p>`, rodape: '<button type="button" class="botao primario" data-acao="fechar-modal">Fechar</button>' });
+    return;
+  }
+  const agora = new Date().toISOString();
+  const semTmdb = [];
+  let novosRegistros = 0;
+  let pulados = 0;
+  let novosTitulos = 0;
+  alterar(() => {
+    plano.series.forEach((serie, i) => {
+      if (!feitas.has(i)) return;
+      const meta = metas[i];
+      const nome = serie.nome || (meta && meta.titulo) || `Série ${serie.tmdb}`;
+      let t = tituloDoTmdb('serie', serie.tmdb)
+        || dados.titulos.find(x => x.tipo === 'serie' && !x.tmdb && chaveTexto(x.titulo) === chaveTexto(nome));
+      if (!t) {
+        t = normalizarTitulo(meta ? { ...meta, id: novoId('t'), criadoEm: agora } : { tipo: 'serie', titulo: nome, id: novoId('t'), criadoEm: agora });
+        if (meta) aplicarMeta(t, meta);
+        dados.titulos.push(t);
+        indice.titulos.set(t.id, t);
+        if (t.tmdb) indice.porTmdb.set(`serie:${t.tmdb}`, t);
+        novosTitulos++;
+        if (!meta) semTmdb.push(nome);
+      }
+      if (serie.curtiu) t.favorito = true;
+      const existentes = dados.registros.filter(r => r.titulo === t.id);
+      const soltos = [...serie.semData].sort((a, b) => a - b).map(n => ({ data: null, nota: null, temporada: n, revisto: false, comentario: '', tags: [] }));
+      if (serie.serieVista) soltos.push({ data: null, nota: null, temporada: null, revisto: false, comentario: '', tags: [] });
+      for (const reg of [...serie.registros, ...soltos]) {
+        if (pular && existentes.some(r => r.data === reg.data && r.temporada === reg.temporada)) { pulados++; continue; }
+        const novo = normalizarRegistro({ ...reg, onde: '', titulo: t.id, id: novoId('r'), criadoEm: agora });
+        dados.registros.push(novo);
+        existentes.push(novo);
+        novosRegistros++;
+      }
+      if (serie.situacao) {
+        t.situacao = serie.situacao;
+      } else if (!t.situacao && existentes.length) {
+        const vistas = existentes.map(r => r.temporada).filter(n => n > 0);
+        const alcance = vistas.length ? Math.max(...vistas) : null;
+        const sugerida = situacaoDepoisDe(t, alcance);
+        if (sugerida !== 'assistindo') t.situacao = sugerida;
+      }
+    });
+  });
+  const restantes = plano.series.length - feitas.size;
+  abrirModal({
+    titulo: cancelado ? 'Importação parada' : 'Importação concluída',
+    corpo: `<p class="resumo" style="margin:4px 0 12px">${plural(novosRegistros, 'registro entrou', 'registros entraram')} no diário${novosTitulos ? `, com ${plural(novosTitulos, 'série nova', 'séries novas')}` : ''}.</p>
+      <ul class="lista-simples">
+        ${pulados ? `<li>${plural(pulados, 'registro já estava', 'registros já estavam')} no diário e ${pulados === 1 ? 'foi pulado' : 'foram pulados'}.</li>` : ''}
+        ${cancelado && restantes ? `<li>${plural(restantes, 'série ficou', 'séries ficaram')} de fora. Importe de novo para completar: o que já entrou é pulado.</li>` : ''}
+        ${semTmdb.length ? `<li>${plural(semTmdb.length, 'série não foi achada', 'séries não foram achadas')} no TMDB e ${semTmdb.length === 1 ? 'entrou' : 'entraram'} sem pôster: ${esc(juntarNomes(semTmdb.slice(0, 8)))}${semTmdb.length > 8 ? ' e outras' : ''}.</li>` : ''}
+      </ul>`,
+    rodape: '<button type="button" class="botao" data-acao="fechar-modal">Fechar</button><button type="button" class="botao primario" data-acao="ir-diario">Ver o diário</button>',
+  });
+}
+
+
 /* ===== Ligação com o OneDrive ===== */
 
 const ONEDRIVE_ESCOPOS = 'Files.ReadWrite offline_access User.Read';
@@ -5218,6 +5617,8 @@ async function guardarETestarChave(contexto, botao) {
     if (busca) busca.focus();
   } else if (contexto === 'importacao') {
     abrirImportacao();
+  } else if (contexto === 'serializd') {
+    abrirImportacaoSerializd();
   } else {
     render();
     const nova = document.querySelector('[data-situacao-chave]');
@@ -5392,6 +5793,11 @@ const ACOES = {
   'baixar-copia': () => baixarCopia(),
   'restaurar-arquivo': () => escolherArquivo('restaurar', '.json,application/json'),
   'importar-letterboxd': () => abrirImportacao(),
+  'importar-serializd': () => abrirImportacaoSerializd(),
+  'ler-serializd': () => lerSerializdDireto(),
+  'copiar-comando-serializd': () => copiarComandoSerializd(),
+  'escolher-arquivo-serializd': () => escolherArquivo('serializd', '.json,application/json'),
+  'executar-importacao-serializd': () => executarImportacaoSerializd(),
   'escolher-importacao': () => escolherArquivo('importar', '.zip,.csv,application/zip,text/csv'),
   'executar-importacao': () => executarImportacao(),
   'exportar-letterboxd': () => exportarLetterboxd(),
@@ -5608,6 +6014,10 @@ function ligarEventos() {
       const botao = e.target.closest('.cartao-chave').querySelector('[data-acao="guardar-chave"]');
       if (botao) botao.click();
     }
+    if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-usuario-serializd]')) {
+      e.preventDefault();
+      lerSerializdDireto();
+    }
     if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-busca-onedrive]')) {
       e.preventDefault();
       procurarNoOneDrive();
@@ -5637,6 +6047,7 @@ function ligarEventos() {
       if (!arquivo) return;
       if (estado.arquivoPara === 'restaurar') restaurarArquivo(arquivo);
       if (estado.arquivoPara === 'importar') lerArquivoImportacao(arquivo);
+      if (estado.arquivoPara === 'serializd') lerArquivoSerializd(arquivo);
       return;
     }
     if (el.matches('[data-arquivo-poster]')) {
