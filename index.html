@@ -2,7 +2,7 @@
 <html lang="pt-BR" data-tema="escuro" data-paleta="sala">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Minha cinemateca</title>
 <meta name="description" content="Diário de filmes e séries: o que você assistiu, quando, onde e com que nota.">
 <meta name="theme-color" content="#13171C">
@@ -234,7 +234,12 @@ body {
   font: 400 15px/1.45 var(--texto);
   -webkit-tap-highlight-color: transparent;
   min-height: 100vh;
+  overflow-x: clip;
 }
+
+html:has(dialog[open]) { overflow: hidden; }
+
+@media (pointer: fine) { html { scrollbar-gutter: stable; } }
 
 h1, h2, h3, p { margin: 0; }
 
@@ -710,7 +715,7 @@ input[type="color"] { width: 38px; height: 38px; padding: 2px; border: 1px solid
 
 .linha-chave { display: flex; gap: 8px; margin-top: 12px; }
 
-.linha-chave input { flex: 1; font-size: 14px; }
+.linha-chave input { flex: 1; font-size: 16px; }
 
 /* ---------- Estatísticas ---------- */
 
@@ -782,7 +787,7 @@ details[open] > .config-cabecalho::after { transform: rotate(45deg); }
 
 .linha-plataforma { display: grid; grid-template-columns: auto 38px minmax(0, 1fr) 36px; gap: 8px; align-items: center; }
 
-.linha-plataforma input[type="text"] { padding: 8px 10px; font-size: 15px; }
+.linha-plataforma input[type="text"] { padding: 8px 10px; font-size: 16px; }
 
 .mover { display: inline-flex; gap: 2px; }
 
@@ -1035,6 +1040,7 @@ details[open] > .config-cabecalho::after { transform: rotate(45deg); }
 /* ---------- Aviso ---------- */
 
 .aviso {
+  inset: auto; width: auto; height: auto; border: 0; overflow: visible;
   position: fixed; left: 12px; right: 12px; z-index: 30;
   bottom: calc(var(--nav-alt) + var(--seguro-baixo) + 12px);
   max-width: 560px; margin: 0 auto;
@@ -1100,13 +1106,11 @@ details[open] > .config-cabecalho::after { transform: rotate(45deg); }
 
 @media (max-width: 640px) {
   .modal {
-    width: 100vw; max-width: 100vw; margin: auto 0 0; border-radius: 18px 18px 0 0;
-    max-height: 92vh;
+    width: 100%; max-width: 100%; margin: auto 0 0; border-radius: 18px 18px 0 0;
+    max-height: 92%;
   }
-  @supports (height: 100dvh) { .modal { max-height: 92dvh; } }
-  .modal.pequeno { width: 100vw; }
-  .modal.tela-cheia { height: 100vh; max-height: 100vh; border-radius: 0; margin: 0; }
-  @supports (height: 100dvh) { .modal.tela-cheia { height: 100dvh; max-height: 100dvh; } }
+  .modal.pequeno { width: 100%; }
+  .modal.tela-cheia { inset: 0; width: 100%; height: 100%; max-height: 100%; border-radius: 0; margin: 0; }
   .modal.tela-cheia .modal-cabecalho, .modal.tela-cheia .busca-topo { padding-top: calc(10px + var(--seguro-topo)); }
   .modal.ficha-modal .modal-cabecalho { padding-top: calc(8px + var(--seguro-topo)); }
   .numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1127,6 +1131,35 @@ details[open] > .config-cabecalho::after { transform: rotate(45deg); }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
+.aviso:not(:popover-open) { display: none; }
+
+/* ---------- Quero ver ---------- */
+
+.botao-quero {
+  width: 40px; height: 40px; border-radius: 999px; flex: none;
+  border: 0; background: transparent; color: var(--legenda);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.botao-quero[aria-pressed="true"] { color: var(--estrela); }
+.botao-quero[aria-pressed="true"] svg { fill: currentColor; }
+.botao-quero:active svg { transform: scale(1.2); }
+.botao-quero svg { transition: transform .15s ease-out; }
+.botao-quero.grande { width: 44px; height: 44px; border: 1px solid var(--linha-forte); }
+.botao-quero.grande[aria-pressed="true"] { border-color: var(--estrela); }
+.botao-quero.mini {
+  position: absolute; top: 5px; right: 5px; z-index: 4; width: 34px; height: 34px;
+  background: rgba(8, 10, 13, .66); color: #fff;
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.botao-quero.mini[aria-pressed="true"] { color: var(--estrela); }
+
+.linha-resultado { display: flex; align-items: center; gap: 4px; border-bottom: 1px solid var(--linha); }
+.linha-resultado .resultado { border-bottom: 0; flex: 1; min-width: 0; }
+
+.tile-vitrine { position: relative; min-width: 0; }
+
+.ponto-lugar { width: 9px; height: 9px; border-radius: 50%; background: var(--cor); display: inline-block; box-shadow: 0 0 0 1px rgba(0, 0, 0, .28); }
+
 </style>
 </head>
 <body>
@@ -1142,7 +1175,7 @@ const PREFIXO = 'minha-cinemateca';
 const ONEDRIVE_CLIENT_ID = 'b5815c83-06aa-4229-ae1f-81b4cdd536b9';
 const TMDB_API = 'https://api.themoviedb.org/3/';
 const TMDB_IMG = 'https://image.tmdb.org/t/p/';
-const VERSAO_APP = '2026.09.29-2305';
+const VERSAO_APP = '2026.09.30-1815';
 
 const GENEROS = [
   ['acao', 'Ação'],
@@ -1358,7 +1391,7 @@ function dadosIniciais() {
     salvoEm: null,
     plataformas: PLATAFORMAS_PADRAO.map(p => ({ ...p, busca: [...p.busca] })),
     metas: {},
-    preferencias: { chaveTMDB: '', comemorar: true, nomes: 'pt' },
+    preferencias: { chaveTMDB: '', comemorar: true, nomes: 'pt', mostrarMetas: true },
     titulos: [],
     registros: [],
   };
@@ -1404,6 +1437,10 @@ function normalizarTitulo(t) {
     idioma: texto(t.idioma, 12),
     pais: texto(t.pais, 60),
     favorito: !!t.favorito,
+    querVer: !!t.querVer,
+    querVerEm: dataValida(t.querVerEm) ? t.querVerEm : null,
+    disponivel: listaDeTextos(t.disponivel, 20),
+    disponivelEm: dataValida(t.disponivelEm) ? t.disponivelEm : null,
     tituloManual: !!t.tituloManual,
     posterManual: !!t.posterManual,
     generosManual: !!t.generosManual,
@@ -1461,6 +1498,7 @@ function normalizarDados(d) {
     ...pref,
     chaveTMDB: texto(pref.chaveTMDB, 400).trim(),
     comemorar: pref.comemorar !== false,
+    mostrarMetas: pref.mostrarMetas !== false,
     nomes: pref.nomes === 'original' ? 'original' : 'pt',
     ultimoBackup: dataValida(pref.ultimoBackup) ? pref.ultimoBackup : null,
   };
@@ -1645,13 +1683,26 @@ function filmesNoAno(ano) {
   return dados.registros.filter(r => r.data && r.data.startsWith(ano) && (tituloPorId(r.titulo) || {}).tipo === 'filme').length;
 }
 
+function tituloSolto(t) {
+  return !registrosDe(t.id).length && !t.querVer && !t.favorito && !(t.tipo === 'serie' && t.situacao);
+}
+
+function limparSoltos() {
+  const soltos = dados.titulos.filter(tituloSolto);
+  if (!soltos.length) return 0;
+  const fora = new Set(soltos);
+  dados.titulos = dados.titulos.filter(t => !fora.has(t));
+  reindexar();
+  return soltos.length;
+}
+
 
 /* ===== Estado da interface ===== */
 
 const estado = {
   aba: 'inicio',
   diario: { busca: '', onde: '', genero: '', tipo: '', favoritos: false },
-  vistos: { busca: '', onde: '', genero: '', tipo: '', favoritos: false, situacao: '', ordem: 'recente' },
+  querover: { busca: '', onde: '', genero: '', tipo: '', favoritos: false, situacao: '', ordem: 'recente' },
   estatisticas: { ano: String(new Date().getFullYear()) },
   busca: { termo: '', tipo: '', resultados: null, carregando: false, pedido: 0, erro: '', vitrine: null, modo: 'registrar', religar: null },
   formulario: null,
@@ -1794,6 +1845,7 @@ async function iniciarApp() {
   reindexar();
   estado.ultimoSalvo = guardados ? (guardados.salvoEm || null) : null;
   estado.ultimoGravado = guardados ? instantaneo() : { config: null, titulos: new Map(), registros: new Map() };
+  if (guardados && limparSoltos()) agendarGravacao();
   const pedidoInicial = lerPedidoDoEndereco();
   history.replaceState({ aba: 'inicio' }, '');
   if (pedidoInicial.aba && pedidoInicial.aba !== 'inicio') irPara(pedidoInicial.aba);
@@ -2244,13 +2296,45 @@ async function atualizarEmSegundoPlano() {
   }
 }
 
+function disponibilidadeDe(meta) {
+  const ids = [...plataformasDisponiveis(meta)];
+  const aluguel = meta && meta.provedores && meta.provedores.aluguel.length;
+  if (!ids.length && aluguel && plataformaPorId('aluguel')) ids.push('aluguel');
+  return ids;
+}
+
+async function atualizarDisponibilidade() {
+  if (estado.conferindoDisponibilidade || !chaveTMDB() || !navigator.onLine) return;
+  const hoje = hojeISO();
+  const alvos = dados.titulos
+    .filter(t => t.querVer && t.tmdb && (!t.disponivelEm || diasEntre(t.disponivelEm, hoje) >= 3))
+    .slice(0, 40);
+  if (!alvos.length) return;
+  estado.conferindoDisponibilidade = true;
+  try {
+    const { resultados } = await atualizarTitulos(alvos);
+    if (!resultados.size) return;
+    alterar(() => {
+      for (const [id, meta] of resultados) {
+        const t = tituloPorId(id);
+        if (!t) continue;
+        if (!t.tmdbEm || diasEntre(t.tmdbEm, hoje) >= 30) aplicarMeta(t, meta);
+        t.disponivel = disponibilidadeDe(meta);
+        t.disponivelEm = hoje;
+      }
+    });
+  } finally {
+    estado.conferindoDisponibilidade = false;
+  }
+}
+
 
 /* ===== Ícones ===== */
 
 const ICONES = {
   inicio: '<path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/>',
   diario: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
-  vistos: '<rect x="3.5" y="3" width="7" height="8.5" rx="1.2"/><rect x="13.5" y="3" width="7" height="8.5" rx="1.2"/><rect x="3.5" y="12.5" width="7" height="8.5" rx="1.2"/><rect x="13.5" y="12.5" width="7" height="8.5" rx="1.2"/>',
+  querover: '<path d="M7 3.5h10a1.5 1.5 0 0 1 1.5 1.5v15.8l-6.5-4.4-6.5 4.4V5A1.5 1.5 0 0 1 7 3.5z"/>',
   estatisticas: '<path d="M5 20v-8M10 20V5M15 20v-6M20 20V9"/>',
   mais: '<path d="M12 5v14M5 12h14"/>',
   engrenagem: '<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a7.7 7.7 0 0 0 0-3l1.8-1.4-1.8-3.1-2.2.8a7.6 7.6 0 0 0-2.6-1.5L14.2 3h-3.6l-.4 2.3a7.6 7.6 0 0 0-2.6 1.5l-2.2-.8-1.8 3.1 1.8 1.4a7.7 7.7 0 0 0 0 3l-1.8 1.4 1.8 3.1 2.2-.8a7.6 7.6 0 0 0 2.6 1.5l.4 2.3h3.6l.4-2.3a7.6 7.6 0 0 0 2.6-1.5l2.2.8 1.8-3.1z"/>',
@@ -2352,6 +2436,8 @@ function opcoesHTML(lista, selecionado) {
 
 function abrirModal({ titulo = '', subtitulo = '', corpo = '', rodape = '', classe = '', formulario = '', topo = null, janela = '#modal' }) {
   const el = $(janela);
+  const ativo = document.activeElement;
+  if (ativo && ativo !== document.body && el.contains(ativo) && typeof ativo.blur === 'function') ativo.blur();
   el.className = 'modal ' + classe;
   const cabecalho = topo !== null ? topo : `<div class="modal-cabecalho"><div style="margin-right:auto;min-width:0">${titulo ? `<h2 class="modal-titulo">${titulo}</h2>` : ''}${subtitulo ? `<p class="modal-sub">${subtitulo}</p>` : ''}</div><button type="button" class="botao-icone" data-acao="fechar-modal" aria-label="Fechar">${icone('fechar')}</button></div>`;
   const miolo = `<div class="modal-corpo">${corpo}</div>${rodape ? `<div class="modal-rodape">${rodape}</div>` : ''}`;
@@ -2402,9 +2488,25 @@ function avisar(texto, { acao, fn, tempo = 5000 } = {}) {
   if (!el) return;
   el.innerHTML = `<span>${esc(texto)}</span>${acao ? `<button type="button" data-acao="aviso-acao">${esc(acao)}</button>` : ''}`;
   el.hidden = false;
+  if (typeof el.showPopover === 'function') {
+    try {
+      if (el.matches(':popover-open')) el.hidePopover();
+      el.showPopover();
+    } catch (e) { /* segue como aviso comum */ }
+  }
   estado.avisoFn = fn || null;
   clearTimeout(estado.avisoTimer);
-  estado.avisoTimer = setTimeout(() => { el.hidden = true; }, tempo);
+  estado.avisoTimer = setTimeout(esconderAviso, tempo);
+}
+
+function esconderAviso() {
+  const el = $('#aviso');
+  if (!el) return;
+  clearTimeout(estado.avisoTimer);
+  if (typeof el.hidePopover === 'function') {
+    try { if (el.matches(':popover-open')) el.hidePopover(); } catch (e) { /* ignora */ }
+  }
+  el.hidden = true;
 }
 
 /* ===== Estrutura ===== */
@@ -2412,12 +2514,12 @@ function avisar(texto, { acao, fn, tempo = 5000 } = {}) {
 const TELAS = {
   inicio: ['Minha cinemateca', 'Início'],
   diario: ['Diário', 'Diário'],
-  vistos: ['Vistos', 'Vistos'],
+  querover: ['Quero ver', 'Quero ver'],
   estatisticas: ['Estatísticas', 'Estatísticas'],
   config: ['Configurações', 'Configurações'],
 };
 
-const ORDEM_ABAS = ['inicio', 'diario', 'vistos', 'estatisticas'];
+const ORDEM_ABAS = ['inicio', 'diario', 'querover', 'estatisticas'];
 
 function montarEsqueleto() {
   const botaoNav = aba => `<button type="button" class="nav-item" data-acao="aba" data-aba="${aba}">${icone(aba, 23)}<span>${TELAS[aba][1]}</span></button>`;
@@ -2433,12 +2535,12 @@ function montarEsqueleto() {
     <nav class="navegacao" aria-label="Seções">
       ${botaoNav('inicio')}${botaoNav('diario')}
       <div class="nav-registrar"><button type="button" data-acao="registrar" aria-label="Registrar filme ou série">${icone('mais', 28, { traco: 2.4 })}</button></div>
-      ${botaoNav('vistos')}${botaoNav('estatisticas')}
+      ${botaoNav('querover')}${botaoNav('estatisticas')}
     </nav>
     <dialog class="modal" id="modal"></dialog>
     <dialog class="modal pequeno folha" id="modal-folha"></dialog>
     <dialog class="modal pequeno" id="modal-confirmar"></dialog>
-    <div class="aviso" id="aviso" role="status" hidden></div>
+    <div class="aviso" id="aviso" role="status" popover="manual" hidden></div>
     <input type="file" data-arquivo hidden>`;
 }
 
@@ -2468,11 +2570,12 @@ function render() {
     else b.removeAttribute('aria-current');
   });
   const conteudo = $('#conteudo');
-  const largo = estado.aba === 'vistos' || estado.aba === 'estatisticas';
+  const largo = estado.aba === 'querover' || estado.aba === 'estatisticas';
   conteudo.className = 'conteudo' + (largo ? ' largo' : '');
   document.body.classList.toggle('largo', largo);
-  const telas = { inicio: telaInicio, diario: telaDiario, vistos: telaVistos, estatisticas: telaEstatisticas, config: telaConfig };
+  const telas = { inicio: telaInicio, diario: telaDiario, querover: telaQueroVer, estatisticas: telaEstatisticas, config: telaConfig };
   conteudo.innerHTML = (telas[estado.aba] || telaInicio)();
+  if (estado.aba === 'querover') setTimeout(atualizarDisponibilidade, 400);
   renderEstadoSalvo();
 }
 
@@ -2489,7 +2592,7 @@ function atualizarResultados() {
   const alvo = $('#resultados');
   if (!alvo) return;
   if (estado.aba === 'diario') alvo.innerHTML = conteudoDiario();
-  if (estado.aba === 'vistos') alvo.innerHTML = conteudoVistos();
+  if (estado.aba === 'querover') alvo.innerHTML = conteudoQueroVer();
 }
 
 function irPara(aba, { historico = true } = {}) {
@@ -2656,7 +2759,8 @@ function blocoMeta(ano) {
   const meta = Number(dados.metas[ano]) || 0;
   const cabecalho = `<div class="secao-cabecalho"><h2 class="titulo-secao">Meta de ${ano}</h2><button type="button" class="link" data-acao="definir-meta" data-ano="${ano}">${meta ? 'Alterar' : 'Definir'}</button></div>`;
   if (!meta) {
-    return `${cabecalho}<div class="meta-linha"><strong>${numero(vistos)}</strong><span>${vistos === 1 ? 'filme' : 'filmes'} em ${ano}. Defina quantos quer ver no ano e acompanhe o ritmo aqui.</span></div>`;
+    return `${cabecalho}<div class="meta-linha"><strong>${numero(vistos)}</strong><span>${vistos === 1 ? 'filme' : 'filmes'} em ${ano}. Defina quantos quer ver no ano e acompanhe o ritmo aqui.</span></div>
+      <p class="detalhe" style="margin-top:6px"><button type="button" class="link" data-acao="mostrar-metas" data-valor="nao">Não uso metas</button></p>`;
   }
   const inicioAno = new Date(Number(ano), 0, 1);
   const fimAno = new Date(Number(ano) + 1, 0, 1);
@@ -2698,7 +2802,7 @@ function telaInicio() {
       <div class="secao-cabecalho"><h2 class="titulo-secao">Últimos registros</h2><button type="button" class="link" data-acao="aba" data-aba="diario">Ver diário</button></div>
       ${recentes.length ? `<div class="fila">${recentes.map(filaRegistro).join('')}</div>` : '<p class="vazio">Os registros com data aparecem aqui.</p>'}
     </section>
-    <section class="secao">${blocoMeta(ano)}</section>
+    ${dados.preferencias.mostrarMetas ? `<section class="secao">${blocoMeta(ano)}</section>` : ''}
     <section class="secao">
       <div class="secao-cabecalho"><h2 class="titulo-secao">Em ${ano}</h2><button type="button" class="link" data-acao="aba" data-aba="estatisticas">Estatísticas</button></div>
       ${numerosHTML(numerosDoPeriodo(doAno))}
@@ -2711,12 +2815,11 @@ function telaInicio() {
 
 /* ===== Filtros ===== */
 
-const ORDENS_VISTOS = [
-  ['recente', 'Vistos por último'],
-  ['nota', 'Maior nota'],
-  ['titulo', 'Título'],
+const ORDENS_QUERO = [
+  ['recente', 'Adicionados por último'],
   ['lancamento', 'Lançamento'],
-  ['vezes', 'Mais vezes'],
+  ['titulo', 'Título'],
+  ['curtos', 'Mais curtos primeiro'],
 ];
 
 function bateFiltros(f, t, regs, ignorar = '') {
@@ -2734,20 +2837,24 @@ function registrosFiltrados(f, ignorar = '') {
     .sort((a, b) => compararRegistros(a.r, b.r));
 }
 
-function titulosFiltrados(f, ignorar = '') {
+function disponivelEm(t, onde) {
+  const lista = t.disponivel || [];
+  return onde === 'sem' ? !!t.disponivelEm && !lista.length : lista.includes(onde);
+}
+
+function queroVerFiltrados(f, ignorar = '') {
   const busca = f.busca.trim();
-  const lista = dados.titulos.filter(t => {
-    const regs = registrosDe(t.id);
-    if (!regs.length && !(t.tipo === 'serie' && t.situacao)) return false;
-    return bateFiltros(f, t, regs, ignorar) && bateBusca(t, busca);
-  });
-  const vezes = t => registrosDe(t.id).length;
+  const lista = dados.titulos.filter(t => t.querVer
+    && (ignorar === 'onde' || !f.onde || disponivelEm(t, f.onde))
+    && (ignorar === 'genero' || !f.genero || t.generos.includes(f.genero))
+    && (ignorar === 'tipo' || !f.tipo || t.tipo === f.tipo)
+    && bateBusca(t, busca));
+  const lancamento = t => t.estreia || (t.ano ? `${t.ano}-01-01` : '');
   const comparadores = {
-    recente: (a, b) => String(ultimaVez(b) || '').localeCompare(String(ultimaVez(a) || '')) || String(b.criadoEm).localeCompare(String(a.criadoEm)),
-    nota: (a, b) => (ultimaNota(b) || 0) - (ultimaNota(a) || 0),
+    recente: (a, b) => String(b.querVerEm || '').localeCompare(String(a.querVerEm || '')) || String(b.criadoEm).localeCompare(String(a.criadoEm)),
+    lancamento: (a, b) => lancamento(b).localeCompare(lancamento(a)),
     titulo: (a, b) => colador.compare(semArtigo(nomeDe(a)), semArtigo(nomeDe(b))),
-    lancamento: (a, b) => (b.ano || 0) - (a.ano || 0),
-    vezes: (a, b) => vezes(b) - vezes(a),
+    curtos: (a, b) => (a.duracao || 9999) - (b.duracao || 9999),
   };
   const comparar = comparadores[f.ordem] || comparadores.recente;
   return lista.sort((a, b) => comparar(a, b) || colador.compare(semArtigo(nomeDe(a)), semArtigo(nomeDe(b))));
@@ -2759,40 +2866,49 @@ function filtrosAtivos(f) {
 
 function barraFiltrosHTML(escopo) {
   const f = estado[escopo];
+  const quero = escopo === 'querover';
   const pilula = (filtro, rotuloVazio, valor, rotulo, cor) => valor
     ? `<button type="button" class="pilula ativa" data-acao="filtro-folha" data-escopo="${escopo}" data-filtro="${filtro}">${cor ? `<span class="ponto" style="--cor:${cor}"></span>` : ''}${esc(rotulo)}<span class="limpar" data-acao="limpar-filtro" data-escopo="${escopo}" data-filtro="${filtro}" aria-label="Tirar filtro">×</span></button>`
     : `<button type="button" class="pilula" data-acao="filtro-folha" data-escopo="${escopo}" data-filtro="${filtro}">${rotuloVazio}</button>`;
   const plataforma = f.onde && f.onde !== 'sem' ? plataformaPorId(f.onde) : null;
-  const rotuloOnde = f.onde === 'sem' ? 'Sem lugar' : plataforma ? plataforma.nome : '';
+  const rotuloOnde = f.onde === 'sem' ? (quero ? 'Sem streaming' : 'Sem lugar') : plataforma ? plataforma.nome : '';
   const tipos = { filme: 'Filmes', serie: 'Séries' };
-  const placeholder = escopo === 'diario' ? 'Buscar no diário' : 'Buscar nos vistos';
+  const placeholder = quero ? 'Buscar no Quero ver' : 'Buscar no diário';
+  const fim = quero
+    ? `<button type="button" class="pilula" data-acao="filtro-folha" data-escopo="querover" data-filtro="ordem">${esc((ORDENS_QUERO.find(o => o[0] === f.ordem) || ORDENS_QUERO[0])[1])}</button>`
+    : `<button type="button" class="pilula pilula-coracao" data-acao="filtrar-favoritos" data-escopo="${escopo}" aria-pressed="${!!f.favoritos}" aria-label="Só favoritos" title="Só favoritos">${icone('coracao', 17)}</button>`;
   return `<div class="barra">
     <input type="search" placeholder="${placeholder}" value="${esc(f.busca)}" data-filtro-busca="${escopo}" aria-label="${placeholder}" enterkeyhint="search" autocomplete="off">
     <div class="filtros">
-      ${pilula('onde', 'Onde assistiu', f.onde, rotuloOnde, plataforma ? corSegura(plataforma.cor) : '')}
+      ${pilula('onde', quero ? 'Onde tem' : 'Onde assistiu', f.onde, rotuloOnde, plataforma ? corSegura(plataforma.cor) : '')}
       ${pilula('genero', 'Gênero', f.genero, GENERO_ROTULO[f.genero] || '')}
       ${pilula('tipo', 'Filmes e séries', f.tipo, tipos[f.tipo] || '')}
-      ${escopo === 'vistos' ? pilula('situacao', 'Situação', f.situacao, SITUACAO_ROTULO[f.situacao] || '') : ''}
-      ${escopo === 'vistos' ? `<button type="button" class="pilula" data-acao="filtro-folha" data-escopo="vistos" data-filtro="ordem">${esc((ORDENS_VISTOS.find(o => o[0] === f.ordem) || ORDENS_VISTOS[0])[1])}</button>` : ''}
-      <button type="button" class="pilula pilula-coracao" data-acao="filtrar-favoritos" data-escopo="${escopo}" aria-pressed="${!!f.favoritos}" aria-label="Só favoritos" title="Só favoritos">${icone('coracao', 17)}</button>
+      ${fim}
     </div>
   </div>`;
 }
 
 function abrirFolhaFiltro(escopo, filtro) {
   const f = estado[escopo];
-  const base = escopo === 'diario' ? registrosFiltrados(f, filtro) : titulosFiltrados(f, filtro);
+  const quero = escopo === 'querover';
+  const base = quero ? queroVerFiltrados(f, filtro) : registrosFiltrados(f, filtro);
   const contar = teste => base.filter(teste).length;
-  const regsDe = x => (escopo === 'diario' ? [x.r] : registrosDe(x.id));
-  const tituloDe = x => (escopo === 'diario' ? x.t : x);
+  const tituloDe = x => (quero ? x : x.t);
   let titulo = '';
   let opcoes = [];
-  if (filtro === 'onde') {
+  if (filtro === 'onde' && quero) {
+    titulo = 'Onde tem';
+    opcoes = [
+      ['', 'Qualquer lugar', base.length],
+      ...dados.plataformas.map(p => [p.id, p.nome, contar(t => disponivelEm(t, p.id)), p.cor]),
+      ['sem', 'Sem streaming', contar(t => disponivelEm(t, 'sem'))],
+    ];
+  } else if (filtro === 'onde') {
     titulo = 'Onde assistiu';
     opcoes = [
       ['', 'Todos os lugares', base.length],
-      ...dados.plataformas.map(p => [p.id, p.nome, contar(x => regsDe(x).some(r => r.onde === p.id)), p.cor]),
-      ['sem', 'Sem lugar registrado', contar(x => regsDe(x).some(r => !r.onde))],
+      ...dados.plataformas.map(p => [p.id, p.nome, contar(x => x.r.onde === p.id), p.cor]),
+      ['sem', 'Sem lugar registrado', contar(x => !x.r.onde)],
     ];
   } else if (filtro === 'genero') {
     titulo = 'Gênero';
@@ -2800,22 +2916,23 @@ function abrirFolhaFiltro(escopo, filtro) {
   } else if (filtro === 'tipo') {
     titulo = 'Filmes e séries';
     opcoes = [['', 'Filmes e séries', base.length], ['filme', 'Só filmes', contar(x => tituloDe(x).tipo === 'filme')], ['serie', 'Só séries', contar(x => tituloDe(x).tipo === 'serie')]];
-  } else if (filtro === 'situacao') {
-    titulo = 'Situação das séries';
-    opcoes = [['', 'Qualquer situação', base.length], ...SITUACOES.map(([id, nome]) => [id, nome, contar(x => tituloDe(x).situacao === id)])];
   } else if (filtro === 'ordem') {
     titulo = 'Ordenar';
-    opcoes = ORDENS_VISTOS.map(([id, nome]) => [id, nome, null]);
+    opcoes = ORDENS_QUERO.map(([id, nome]) => [id, nome, null]);
   }
   const atual = f[filtro] || (filtro === 'ordem' ? 'recente' : '');
   const visiveis = opcoes.filter(([valor, , qtd]) => valor === '' || valor === atual || qtd === null || qtd > 0);
   const ocultas = opcoes.length - visiveis.length;
+  const vazias = quero ? 'sem títulos' : 'sem registros';
+  let ajuda = '';
+  if (quero && filtro === 'onde') ajuda = 'Mostra onde cada título está disponível no Brasil agora, pelos dados do TMDB, conferidos a cada poucos dias.';
+  else if (ocultas && filtro !== 'ordem') ajuda = `${ocultas === 1 ? `1 opção ${vazias} ficou de fora` : `${ocultas} opções ${vazias} ficaram de fora`}${filtro === 'onde' ? '. A lista de lugares fica em Configurações.' : '.'}`;
   abrirModal({
     janela: '#modal-folha',
     classe: 'pequeno folha',
     titulo,
     corpo: `<div class="chips">${visiveis.map(([valor, nome, qtd, cor]) => `<button type="button" class="chip" data-acao="aplicar-filtro" data-escopo="${escopo}" data-filtro="${filtro}" data-valor="${esc(valor)}" aria-pressed="${valor === atual}">${cor ? `<span class="ponto" style="--cor:${corSegura(cor)}"></span>` : ''}${esc(nome)}${qtd !== null && qtd !== undefined ? `<span class="qtd">${numero(qtd)}</span>` : ''}</button>`).join('')}</div>
-      ${ocultas && filtro !== 'ordem' ? `<p class="ajuda" style="margin-top:14px">${ocultas === 1 ? '1 opção sem registros ficou de fora' : `${ocultas} opções sem registros ficaram de fora`}${filtro === 'onde' ? '. A lista de lugares fica em Configurações.' : '.'}</p>` : ''}`,
+      ${ajuda ? `<p class="ajuda" style="margin-top:14px">${ajuda}</p>` : ''}`,
   });
 }
 
@@ -2848,23 +2965,38 @@ function conteudoDiario() {
       <ul class="lista-diario">${itens.map(({ r, t }) => linhaDiarioHTML(r, t)).join('')}</ul>`).join('');
 }
 
-/* ===== Vistos ===== */
+/* ===== Quero ver ===== */
 
-function telaVistos() {
-  return barraFiltrosHTML('vistos') + `<div id="resultados">${conteudoVistos()}</div>`;
+function tileQueroVerHTML(t) {
+  const lugares = (t.disponivel || []).map(plataformaPorId).filter(Boolean);
+  const nomes = lugares.map(p => p.nome);
+  const rotulo = `${nomeDe(t)}${t.ano ? `, ${t.ano}` : ''}${nomes.length ? `, disponível em ${juntarNomes(nomes)}` : ''}`;
+  return `<button type="button" class="tile" data-acao="abrir-titulo" data-id="${esc(t.id)}" aria-label="${esc(rotulo)}">
+    ${posterHTML(t)}
+    <span class="tile-linha">${lugares.slice(0, 5).map(p => `<i class="ponto-lugar" style="--cor:${corSegura(p.cor)}" title="${esc(p.nome)}"></i>`).join('')}</span>
+  </button>`;
 }
 
-function conteudoVistos() {
-  const f = estado.vistos;
-  const todos = dados.titulos.filter(t => registrosDe(t.id).length || (t.tipo === 'serie' && t.situacao));
-  if (!todos.length) return '<p class="vazio">Os filmes e séries registrados aparecem aqui, em pôsteres.</p>';
-  const lista = titulosFiltrados(f);
+function telaQueroVer() {
+  return barraFiltrosHTML('querover') + `<div id="resultados">${conteudoQueroVer()}</div>`;
+}
+
+function conteudoQueroVer() {
+  const f = estado.querover;
+  if (!dados.titulos.some(t => t.querVer)) {
+    return `<p class="vazio">Guarde aqui os filmes e séries que você quer ver. Na busca, toque no marcador ao lado do título; na ficha, toque em Quero ver.</p>
+      <div class="acoes"><button type="button" class="botao primario" data-acao="registrar">Buscar filme ou série</button></div>
+      <p class="ajuda" style="margin-top:14px">A watchlist do Letterboxd e a do Serializd também vêm para cá, pelas importações em Configurações.</p>`;
+  }
+  const lista = queroVerFiltrados(f);
   const filmes = lista.filter(t => t.tipo === 'filme').length;
   const series = lista.length - filmes;
   const partes = [filmes ? plural(filmes, 'filme', 'filmes') : '', series ? plural(series, 'série', 'séries') : ''].filter(Boolean);
-  const contagem = `<p class="contagem">${partes.length ? juntarNomes(partes) : 'Nenhum título'}${filtrosAtivos(f) ? ` <button type="button" class="link" data-acao="limpar-filtros" data-escopo="vistos">Limpar filtros</button>` : ''}</p>`;
+  const contagem = `<p class="contagem">${partes.length ? juntarNomes(partes) : 'Nenhum título'}${filtrosAtivos(f) ? ` <button type="button" class="link" data-acao="limpar-filtros" data-escopo="querover">Limpar filtros</button>` : ''}</p>`;
   if (!lista.length) return `${contagem}<p class="vazio">Nenhum título com esses filtros.</p>`;
-  return contagem + `<div class="grade">${lista.map(t => tileHTML(t)).join('')}</div>`;
+  const algumLugar = lista.some(t => (t.disponivel || []).length);
+  return contagem + `<div class="grade">${lista.map(tileQueroVerHTML).join('')}</div>`
+    + (algumLugar ? '<p class="nota-rodape" style="margin-top:18px">Os pontos coloridos embaixo de cada pôster mostram em quais dos seus serviços o título está disponível agora.</p>' : '');
 }
 
 /* ===== Estatísticas ===== */
@@ -3003,10 +3135,10 @@ function telaEstatisticas() {
     ${lista.length ? numerosHTML(n) : ''}
     ${semDuracao && lista.length ? `<p class="nota-rodape">${semDuracao === 1 ? '1 registro está' : `${numero(semDuracao)} registros estão`} sem duração conhecida e ${semDuracao === 1 ? 'fica' : 'ficam'} fora das horas.</p>` : ''}
     ${graficos}
-    <section class="secao">
+    ${dados.preferencias.mostrarMetas ? `<section class="secao">
       <div class="secao-cabecalho"><h2 class="titulo-secao">Metas de filmes por ano</h2></div>
       <div style="overflow-x:auto"><table class="tabela" style="max-width:520px"><thead><tr><th>Ano</th><th class="num">Meta</th><th class="num">Vistos</th><th>Resultado</th></tr></thead><tbody>${linhasMetas}</tbody></table></div>
-    </section>`;
+    </section>` : ''}`;
 }
 
 /* ===== Configurações ===== */
@@ -3060,9 +3192,15 @@ function telaConfig() {
       <button type="button" data-acao="nomes" data-valor="original" aria-pressed="${dados.preferencias.nomes === 'original'}">No idioma original</button>
     </div>`;
 
-  const metasCorpo = `<p>Quantos filmes você quer ver em cada ano. Revisões contam, séries não.</p>
+  const metasLigadas = dados.preferencias.mostrarMetas;
+  const metasCorpo = `<p>Metas de quantos filmes ver em cada ano. Desligadas, elas somem da tela inicial e das estatísticas.</p>
+    <div class="segmentado" role="group" aria-label="Metas" style="margin-top:10px">
+      <button type="button" data-acao="mostrar-metas" data-valor="sim" aria-pressed="${metasLigadas}">Ligadas</button>
+      <button type="button" data-acao="mostrar-metas" data-valor="nao" aria-pressed="${!metasLigadas}">Desligadas</button>
+    </div>
+    ${metasLigadas ? `<p class="ajuda" style="margin-top:14px">Revisões contam como filme visto; temporadas de séries não entram.</p>
     <div class="metas-lista">${metas.map(a => `<div class="meta-ano"><span>${a}</span><input type="number" min="1" max="9999" value="${esc(dados.metas[a])}" data-meta-ano="${a}" aria-label="Meta de ${a}" inputmode="numeric"><button type="button" class="botao discreto pequeno" data-acao="remover-meta" data-ano="${a}">Remover</button></div>`).join('')}</div>
-    <div class="acoes"><button type="button" class="botao pequeno" data-acao="definir-meta" data-ano="${hojeISO().slice(0, 4)}">Definir meta de um ano</button></div>`;
+    <div class="acoes"><button type="button" class="botao pequeno" data-acao="definir-meta" data-ano="${hojeISO().slice(0, 4)}">Definir meta de um ano</button></div>` : ''}`;
 
   const onedrive = `<p>Com o OneDrive ligado, o diário vai para um arquivo Cinemateca.json na sua conta, e outros aparelhos com o app recebem as alterações ao abrir.</p>
     <p class="detalhe">${esc(textoSituacaoOneDrive())}${estado.erroOneDrive ? ` ${esc(estado.erroOneDrive)}` : ''}</p>
@@ -3111,7 +3249,7 @@ function telaConfig() {
 
   return `${secaoConfig('tmdb', 'Busca de filmes e séries', chaveTMDB() ? 'TMDB ligado' : 'Falta a chave', tmdbCorpo)}
     ${secaoConfig('plataformas', 'Onde assistiu', plural(dados.plataformas.length, 'lugar', 'lugares'), plataformas)}
-    ${secaoConfig('metas', 'Meta de filmes', dados.metas[hojeISO().slice(0, 4)] ? `${dados.metas[hojeISO().slice(0, 4)]} em ${hojeISO().slice(0, 4)}` : '', metasCorpo)}
+    ${secaoConfig('metas', 'Metas', !metasLigadas ? 'Desligadas' : dados.metas[hojeISO().slice(0, 4)] ? `${dados.metas[hojeISO().slice(0, 4)]} filmes em ${hojeISO().slice(0, 4)}` : 'Ligadas', metasCorpo)}
     ${secaoConfig('nomes', 'Títulos', dados.preferencias.nomes === 'original' ? 'No idioma original' : 'Em português', nomes)}
     ${secaoConfig('onedrive', 'OneDrive', oneDriveLigado() ? 'Conectado' : 'Desligado', onedrive)}
     ${secaoConfig('copias', 'Cópias, importação e exportação', '', copias)}
@@ -3161,7 +3299,7 @@ function abrirBusca({ modo = 'registrar', religar = null, termo } = {}) {
     corpo: `<div data-busca-conteudo>${conteudoBusca()}</div>`,
   });
   const campo = document.querySelector('[data-busca-tmdb]');
-  if (campo && chaveTMDB() && !b.termo.trim()) setTimeout(() => campo.focus(), 60);
+  if (campo && chaveTMDB() && !b.termo.trim()) campo.focus({ preventScroll: true });
   if (!b.termo.trim()) carregarVitrineNaBusca();
   else if (!b.resultados) executarBusca();
 }
@@ -3189,14 +3327,14 @@ function resultadoHTML(p, i) {
   const principal = nomeDaPrevia(p);
   const segundo = principal === p.titulo ? p.original : p.titulo;
   const mostrarSegundo = segundo && chaveTexto(segundo) !== chaveTexto(principal);
-  return `<li><button type="button" class="resultado" data-acao="escolher-resultado" data-lista="resultados" data-indice="${i}">
+  return `<li class="linha-resultado"><button type="button" class="resultado" data-acao="escolher-resultado" data-lista="resultados" data-indice="${i}">
     ${posterHTML({ ...p, id: `tmdb-${p.tipo}-${p.tmdb}` }, { tamanho: 'w92', dobro: 'w185' })}
     <span>
       <span class="resultado-titulo">${esc(principal)}${p.ano ? `<span class="ano">${p.ano}</span>` : ''}</span>
       <span class="detalhe" style="display:block"><span class="tipo-selo">${p.tipo === 'serie' ? 'Série' : 'Filme'}</span>${mostrarSegundo ? esc(segundo) : ''}</span>
     </span>
-    ${existente ? `<span class="visto-selo">${icone('check', 15, { traco: 2.4 })}${vezes > 1 ? `${vezes}×` : vezes ? 'Visto' : 'No diário'}</span>` : ''}
-  </button></li>`;
+    ${vezes ? `<span class="visto-selo">${icone('check', 15, { traco: 2.4 })}${vezes > 1 ? `${vezes}×` : 'Visto'}</span>` : ''}
+  </button>${estado.busca.modo === 'religar' ? '' : botaoQueroVerPrevia(p, 'resultados', i)}</li>`;
 }
 
 function vitrineHTML() {
@@ -3205,7 +3343,7 @@ function vitrineHTML() {
   const recentes = titulosRecentes(12);
   const doDiario = recentes.length ? `<section class="bloco-busca"><h3>Do seu diário</h3><div class="fila">${recentes.map(t => `<button type="button" class="tile" data-acao="registrar-titulo" data-id="${esc(t.id)}" aria-label="Registrar ${esc(nomeDe(t))} de novo">${posterHTML(t)}<span class="tile-nome">${esc(nomeDe(t))}</span></button>`).join('')}</div></section>` : '';
   const v = b.vitrine;
-  const fila = (lista, nome) => `<div class="fila">${lista.map((p, i) => `<button type="button" class="tile" data-acao="escolher-resultado" data-lista="${nome}" data-indice="${i}" aria-label="${esc(nomeDaPrevia(p))}${p.ano ? `, ${p.ano}` : ''}">${posterHTML({ ...p, id: `tmdb-${p.tipo}-${p.tmdb}` })}<span class="tile-nome">${esc(nomeDaPrevia(p))}</span></button>`).join('')}</div>`;
+  const fila = (lista, nome) => `<div class="fila">${lista.map((p, i) => `<div class="tile-vitrine"><button type="button" class="tile" data-acao="escolher-resultado" data-lista="${nome}" data-indice="${i}" aria-label="${esc(nomeDaPrevia(p))}${p.ano ? `, ${p.ano}` : ''}">${posterHTML({ ...p, id: `tmdb-${p.tipo}-${p.tmdb}` })}<span class="tile-nome">${esc(nomeDaPrevia(p))}</span></button>${botaoQueroVerPrevia(p, nome, i, 'botao-quero mini')}</div>`).join('')}</div>`;
   let blocos = '';
   if (v) {
     if (v.cartaz.length) blocos += `<section class="bloco-busca"><h3>Nos cinemas</h3>${fila(v.cartaz, 'cartaz')}</section>`;
@@ -3216,6 +3354,60 @@ function vitrineHTML() {
     blocos = '<p class="estado-busca">Carregando o que está nos cinemas…</p>';
   }
   return doDiario + blocos;
+}
+
+function botaoQueroVerPrevia(p, lista, indice, classe = 'botao-quero') {
+  const t = tituloDoTmdb(p.tipo, p.tmdb);
+  const ligado = !!(t && t.querVer);
+  const rotulo = ligado ? 'Tirar do Quero ver' : 'Quero ver';
+  return `<button type="button" class="${classe}" data-acao="quero-ver-previa" data-lista="${lista}" data-indice="${indice}" aria-pressed="${ligado}" aria-label="${rotulo}: ${esc(nomeDaPrevia(p))}" title="${rotulo}">${icone('querover', classe.includes('mini') ? 18 : 21)}</button>`;
+}
+
+function marcarBotoesQueroVer(tipo, tmdb, ligado) {
+  document.querySelectorAll('[data-acao="quero-ver-previa"]').forEach(b => {
+    const p = previaDaLista(b.dataset.lista, Number(b.dataset.indice));
+    if (!p || p.tipo !== tipo || p.tmdb !== tmdb) return;
+    const rotulo = ligado ? 'Tirar do Quero ver' : 'Quero ver';
+    b.setAttribute('aria-pressed', String(ligado));
+    b.setAttribute('aria-label', `${rotulo}: ${nomeDaPrevia(p)}`);
+    b.title = rotulo;
+  });
+}
+
+function alternarQueroVerPrevia(lista, indice) {
+  const p = previaDaLista(lista, indice);
+  if (!p) return;
+  let t = tituloDoTmdb(p.tipo, p.tmdb);
+  const ligar = !(t && t.querVer);
+  const nome = t ? nomeDe(t) : nomeDaPrevia(p);
+  alterar(() => {
+    if (!t) {
+      t = normalizarTitulo({ ...p, id: novoId('t'), criadoEm: new Date().toISOString() });
+      dados.titulos.push(t);
+    }
+    t.querVer = ligar;
+    t.querVerEm = ligar ? hojeISO() : null;
+    if (!ligar && tituloSolto(t)) dados.titulos = dados.titulos.filter(x => x !== t);
+  }, { mensagem: ligar ? `${nome} está no Quero ver.` : `${nome} saiu do Quero ver.` });
+  marcarBotoesQueroVer(p.tipo, p.tmdb, ligar);
+  if (ligar) setTimeout(atualizarDisponibilidade, 300);
+}
+
+function alternarQueroVer(id, botao) {
+  const t = tituloPorId(id);
+  if (!t) return;
+  const ligar = !t.querVer;
+  alterar(() => {
+    t.querVer = ligar;
+    t.querVerEm = ligar ? hojeISO() : null;
+  }, { mensagem: ligar ? `${nomeDe(t)} está no Quero ver.` : `${nomeDe(t)} saiu do Quero ver.` });
+  if (botao) {
+    const rotulo = ligar ? 'Tirar do Quero ver' : 'Quero ver';
+    botao.setAttribute('aria-pressed', String(ligar));
+    botao.setAttribute('aria-label', rotulo);
+    botao.title = rotulo;
+  }
+  if (ligar) setTimeout(atualizarDisponibilidade, 300);
 }
 
 function atualizarConteudoBusca() {
@@ -3545,6 +3737,7 @@ function salvarRegistro(form, { soAssistindo = false } = {}) {
   let novoTitulo = false;
   let registroNovo = null;
   let terminou = false;
+  let saiuDaLista = false;
   const situacaoAntes = f.tituloId ? (tituloPorId(f.tituloId) || {}).situacao : '';
   alterar(() => {
     t = f.tituloId ? tituloPorId(f.tituloId) : (f.tmdb ? tituloDoTmdb(f.tipoTitulo, f.tmdb) : null);
@@ -3565,6 +3758,11 @@ function salvarRegistro(form, { soAssistindo = false } = {}) {
       t.generos = v.generos;
     }
     t.favorito = v.favorito;
+    if (t.querVer && !f.registroId) {
+      t.querVer = false;
+      t.querVerEm = null;
+      saiuDaLista = true;
+    }
     if (t.tipo === 'serie') {
       const antes = t.situacao;
       if (soAssistindo) t.situacao = f.situacaoTocada ? v.situacao : 'assistindo';
@@ -3588,8 +3786,9 @@ function salvarRegistro(form, { soAssistindo = false } = {}) {
   const p = plataformaPorId(v.onde);
   if (f.voltarFicha || f.registroId) abrirFicha(t.id, { destaque: f.registroId || '' });
   else fecharModal();
+  const avisoLista = saiuDaLista ? ' Saiu do Quero ver.' : '';
   if (soAssistindo) {
-    avisar(`${nome} está em Assistindo agora.`);
+    avisar(`${nome} está em Assistindo agora.${avisoLista}`);
   } else if (f.registroId) {
     avisar('Registro atualizado.');
   } else {
@@ -3597,7 +3796,7 @@ function salvarRegistro(form, { soAssistindo = false } = {}) {
     const oque = t.tipo === 'serie' ? `${nome}, ${v.temporada ? `temporada ${v.temporada}` : 'série completa'},` : nome;
     const idRegistro = registroNovo.id;
     const idTitulo = t.id;
-    avisar(`${oque} registrado${onde}.`, { acao: 'Desfazer', fn: () => desfazerRegistro(idRegistro, novoTitulo ? idTitulo : null), tempo: 7000 });
+    avisar(`${oque} registrado${onde}.${avisoLista}`, { acao: 'Desfazer', fn: () => desfazerRegistro(idRegistro, novoTitulo ? idTitulo : null), tempo: 7000 });
   }
   if (!soAssistindo && !f.registroId) {
     comemorarSeFor({ t, data: v.data, filmesAntes, filmesDepois: filmesNoAno(anoRegistro), terminou, ano: anoRegistro });
@@ -3628,7 +3827,7 @@ async function excluirRegistro(id) {
   alterar(() => {
     dados.registros = dados.registros.filter(x => x.id !== id);
     const sobra = dados.registros.some(x => x.titulo === t.id);
-    if (!sobra && !(t.tipo === 'serie' && ['assistindo', 'pausada'].includes(t.situacao))) {
+    if (!sobra && !t.querVer && !(t.tipo === 'serie' && ['assistindo', 'pausada'].includes(t.situacao))) {
       dados.titulos = dados.titulos.filter(x => x.id !== t.id);
       saiuTitulo = true;
     }
@@ -3658,7 +3857,8 @@ function abrirFicha(id, { destaque = '' } = {}) {
   partes.push(t.tipo === 'serie' ? 'Série' : 'Filme');
   const credito = t.direcao.length ? `${t.tipo === 'serie' ? 'Criação de' : 'Direção de'} ${juntarNomes(t.direcao)}` : '';
   const vezes = regs.length;
-  const resumo = vezes ? (t.tipo === 'serie' ? plural(vezes, 'registro', 'registros') : vezes === 1 ? 'Visto uma vez' : `Visto ${vezes} vezes`) : '';
+  const resumo = vezes ? (t.tipo === 'serie' ? plural(vezes, 'registro', 'registros') : vezes === 1 ? 'Visto uma vez' : `Visto ${vezes} vezes`)
+    : t.querVer && t.querVerEm ? `No Quero ver desde ${dataBR(t.querVerEm)}` : '';
 
   let blocoSerie = '';
   if (t.tipo === 'serie') {
@@ -3715,6 +3915,7 @@ function abrirFicha(id, { destaque = '' } = {}) {
         <div class="ficha-acoes">
           <button type="button" class="botao primario" data-acao="registrar-titulo" data-id="${esc(t.id)}">${icone('mais', 18, { traco: 2.4 })}${vezes ? 'Registrar de novo' : 'Registrar'}</button>
           <button type="button" class="botao-coracao" data-acao="alternar-favorito" data-id="${esc(t.id)}" aria-pressed="${t.favorito}" aria-label="Favorito" title="${t.favorito ? 'Tirar dos favoritos' : 'Marcar como favorito'}">${icone('coracao', 22)}</button>
+          <button type="button" class="botao-quero grande" data-acao="alternar-quero-ver" data-id="${esc(t.id)}" aria-pressed="${t.querVer}" aria-label="${t.querVer ? 'Tirar do Quero ver' : 'Quero ver'}" title="${t.querVer ? 'Tirar do Quero ver' : 'Quero ver'}">${icone('querover', 21)}</button>
           ${resumo ? `<span class="detalhe">${esc(resumo)}</span>` : ''}
         </div>
         ${t.generos.length ? `<div class="chips ficha-generos">${t.generos.map(g => `<span class="chip">${esc(GENERO_ROTULO[g])}</span>`).join('')}</div>` : ''}
@@ -3741,7 +3942,18 @@ async function carregarOndeAssistir(t) {
     return;
   }
   if (!meta) return;
-  if (!t.tmdbEm || diasEntre(t.tmdbEm, hojeISO()) >= 30) alterar(() => aplicarMeta(t, meta));
+  const hoje = hojeISO();
+  const precisaMeta = !t.tmdbEm || diasEntre(t.tmdbEm, hoje) >= 30;
+  const precisaLugar = t.querVer && t.disponivelEm !== hoje;
+  if (precisaMeta || precisaLugar) {
+    alterar(() => {
+      if (precisaMeta) aplicarMeta(t, meta);
+      if (t.querVer) {
+        t.disponivel = disponibilidadeDe(meta);
+        t.disponivelEm = hoje;
+      }
+    });
+  }
   if (estado.fichaAberta !== t.id) return;
   const bloco = document.querySelector('#modal [data-onde-assistir]');
   if (!bloco) return;
@@ -4025,7 +4237,7 @@ function comemorarSeFor({ t, data, filmesAntes, filmesDepois, terminou, ano }) {
   }
   if (!t || t.tipo !== 'filme' || !data || filmesDepois <= filmesAntes) return;
   const meta = Number(dados.metas[ano]) || 0;
-  if (meta && filmesAntes < meta && filmesDepois >= meta) {
+  if (meta && dados.preferencias.mostrarMetas && filmesAntes < meta && filmesDepois >= meta) {
     comemorar('Meta cumprida', `${plural(meta, 'filme', 'filmes')} em ${ano}. ${nomeDe(t)} fechou a conta.`);
   } else if (MARCOS.includes(filmesDepois)) {
     comemorar(`${filmesDepois} filmes`, `${nomeDe(t)} é o ${filmesDepois}º filme de ${ano}.`);
@@ -4175,6 +4387,7 @@ function tipoDeTabela(nome, linhas) {
   if (/(^|\/)watched\.csv$/.test(base)) return 'vistos';
   if (/(^|\/)ratings\.csv$/.test(base)) return 'notas';
   if (/likes\/films\.csv$/.test(base)) return 'curtidos';
+  if (/(^|\/)watchlist\.csv$/.test(base)) return 'querover';
   if (/deleted\//.test(nome) || /watchlist|lists?\//.test(nome)) return '';
   const colunas = Object.keys(linhas[0] || {});
   if (!colunas.some(c => /^(name|title)$/i.test(c))) return '';
@@ -4193,15 +4406,17 @@ function campo(linha, ...nomes) {
 
 function montarPlanoImportacao(tabelas) {
   const filmes = new Map();
-  const pegar = linha => {
+  const pegar = (linha, visto = true) => {
     const nome = campo(linha, 'Name', 'Title');
     if (!nome) return null;
     const ano = inteiroOuNulo(campo(linha, 'Year'), 1870, 2200);
     const chave = `${chaveTexto(nome)}|${ano || ''}`;
-    if (!filmes.has(chave)) filmes.set(chave, { nome, ano, tmdb: inteiroOuNulo(campo(linha, 'tmdbID'), 1), registros: [], curtiu: false, notaSolta: null });
-    return filmes.get(chave);
+    if (!filmes.has(chave)) filmes.set(chave, { nome, ano, tmdb: inteiroOuNulo(campo(linha, 'tmdbID'), 1), registros: [], curtiu: false, notaSolta: null, visto: false, querVer: false, querVerEm: null });
+    const f = filmes.get(chave);
+    if (visto) f.visto = true;
+    return f;
   };
-  const porTipo = { diario: [], resenhas: [], vistos: [], notas: [], curtidos: [] };
+  const porTipo = { diario: [], resenhas: [], vistos: [], notas: [], curtidos: [], querover: [] };
   for (const [nome, linhas] of tabelas) {
     const tipo = tipoDeTabela(nome, linhas);
     if (tipo) porTipo[tipo].push(...linhas);
@@ -4240,8 +4455,14 @@ function montarPlanoImportacao(tabelas) {
     const f = pegar(l);
     if (f) f.curtiu = true;
   }
+  for (const l of porTipo.querover) {
+    const f = pegar(l, false);
+    if (!f) continue;
+    f.querVer = true;
+    if (dataValida(campo(l, 'Date'))) f.querVerEm = campo(l, 'Date');
+  }
   for (const f of filmes.values()) {
-    if (!f.registros.length) f.registros.push({ data: null, nota: f.notaSolta, revisto: false, tags: [], comentario: '' });
+    if (!f.registros.length && f.visto) f.registros.push({ data: null, nota: f.notaSolta, revisto: false, tags: [], comentario: '' });
     else if (f.notaSolta && !f.registros.some(r => r.nota)) {
       const ordenados = [...f.registros].sort((a, b) => String(b.data || '').localeCompare(String(a.data || '')));
       ordenados[0].nota = f.notaSolta;
@@ -4253,6 +4474,8 @@ function montarPlanoImportacao(tabelas) {
     registros: lista.reduce((s, f) => s + f.registros.length, 0),
     semData: lista.reduce((s, f) => s + f.registros.filter(r => !r.data).length, 0),
     curtidos: lista.filter(f => f.curtiu).length,
+    vistos: lista.filter(f => f.visto).length,
+    querVer: lista.filter(f => f.querVer).length,
   };
 }
 
@@ -4299,8 +4522,9 @@ async function lerArquivoImportacao(arquivo) {
   estado.formulario = { tipo: 'importacao', plano };
   abrirModal({
     titulo: 'Importar do Letterboxd',
-    corpo: `<p class="resumo" style="margin:4px 0 12px">${plural(plano.filmes.length, 'filme', 'filmes')} e ${plural(plano.registros, 'registro', 'registros')} no arquivo.</p>
+    corpo: `<p class="resumo" style="margin:4px 0 12px">${plural(plano.vistos, 'filme visto', 'filmes vistos')} e ${plural(plano.registros, 'registro', 'registros')} no arquivo.</p>
       <ul class="lista-simples">
+        ${plano.querVer ? `<li>${plural(plano.querVer, 'filme da watchlist vai', 'filmes da watchlist vão')} para o Quero ver.</li>` : ''}
         ${plano.semData ? `<li>${plural(plano.semData, 'registro não tem data', 'registros não têm data')} e ${plano.semData === 1 ? 'vai' : 'vão'} para o fim do diário, em Sem data.</li>` : ''}
         ${plano.curtidos ? `<li>${plural(plano.curtidos, 'filme curtido vira favorito', 'filmes curtidos viram favoritos')}.</li>` : ''}
         <li>A busca no TMDB leva cerca de ${Math.max(1, Math.round(plano.filmes.length / 12))} ${Math.round(plano.filmes.length / 12) > 1 ? 'segundos' : 'segundo'}. Deixe o app aberto até o fim.</li>
@@ -4392,6 +4616,7 @@ async function executarImportacao() {
   let novosRegistros = 0;
   let pulados = 0;
   let novosTitulos = 0;
+  let paraQueroVer = 0;
   alterar(() => {
     plano.filmes.forEach((filme, i) => {
       if (cancelado && i >= feitos) return;
@@ -4407,6 +4632,11 @@ async function executarImportacao() {
         if (!meta) semTmdb.push(filme);
       }
       if (filme.curtiu) t.favorito = true;
+      if (filme.querVer && !t.querVer) {
+        t.querVer = true;
+        t.querVerEm = filme.querVerEm || hojeISO();
+        paraQueroVer++;
+      }
       const existentes = dados.registros.filter(r => r.titulo === t.id);
       for (const reg of filme.registros) {
         if (pular && existentes.some(r => r.data === reg.data)) { pulados++; continue; }
@@ -4422,6 +4652,7 @@ async function executarImportacao() {
     titulo: cancelado ? 'Importação parada' : 'Importação concluída',
     corpo: `<p class="resumo" style="margin:4px 0 12px">${plural(novosRegistros, 'registro entrou', 'registros entraram')} no diário${novosTitulos ? `, com ${plural(novosTitulos, 'título novo', 'títulos novos')}` : ''}.</p>
       <ul class="lista-simples">
+        ${paraQueroVer ? `<li>${plural(paraQueroVer, 'filme foi', 'filmes foram')} para o Quero ver.</li>` : ''}
         ${pulados ? `<li>${plural(pulados, 'registro já estava', 'registros já estavam')} no diário e ${pulados === 1 ? 'foi pulado' : 'foram pulados'}.</li>` : ''}
         ${cancelado ? `<li>Os ${plural(plano.filmes.length - feitos, 'filme restante ficou', 'filmes restantes ficaram')} de fora. Importe o mesmo arquivo de novo para completar: o que já entrou é pulado.</li>` : ''}
         ${semTmdb.length ? `<li>${plural(semTmdb.length, 'filme não foi achado', 'filmes não foram achados')} no TMDB e ${semTmdb.length === 1 ? 'entrou' : 'entraram'} sem pôster: ${esc(juntarNomes(semTmdb.slice(0, 8).map(x => `${x.nome}${x.ano ? ` (${x.ano})` : ''}`)))}${semTmdb.length > 8 ? ' e outros' : ''}. Em Configurações, Busca de filmes e séries, dá para ligar cada um.</li>` : ''}
@@ -4611,11 +4842,11 @@ function gerarPlanilhaExcel() {
       { titulo: 'Ano', largura: 7, tipo: 'numero' }, { titulo: 'Gêneros', largura: 28 }, { titulo: 'Direção ou criação', largura: 28 },
       { titulo: 'Registros', largura: 10, tipo: 'numero' }, { titulo: 'Última vez', largura: 11, tipo: 'data' },
       { titulo: 'Última nota', largura: 11, tipo: 'numero' }, { titulo: 'Favorito', largura: 9 }, { titulo: 'Situação', largura: 12 },
-      { titulo: 'TMDB', largura: 10, tipo: 'numero' },
+      { titulo: 'Quero ver', largura: 10 }, { titulo: 'TMDB', largura: 10, tipo: 'numero' },
     ],
     linhas: [...dados.titulos].sort((a, b) => colador.compare(semArtigo(a.titulo), semArtigo(b.titulo))).map(t => [
       t.titulo, t.original, t.tipo === 'serie' ? 'Série' : 'Filme', t.ano, generos(t), t.direcao.join(', '),
-      registrosDe(t.id).length, ultimaVez(t), ultimaNota(t), t.favorito ? 'Sim' : '', t.tipo === 'serie' ? (SITUACAO_ROTULO[t.situacao] || '') : '', t.tmdb,
+      registrosDe(t.id).length, ultimaVez(t), ultimaNota(t), t.favorito ? 'Sim' : '', t.tipo === 'serie' ? (SITUACAO_ROTULO[t.situacao] || '') : '', t.querVer ? 'Sim' : '', t.tmdb,
     ]),
   };
   return montarXLSX([diario, titulos]);
@@ -4708,6 +4939,7 @@ async function coletarSerializd(usuario, informar) {
   const pausadas = await lista('paused_shows_page', 'Pausadas');
   const abandonadas = await lista('dropped_shows_page', 'Abandonadas');
   const vistas = await lista('watchedpage_v2', 'Vistas');
+  const querVer = await lista('watchlistpage_v2', 'Quero ver');
   const precisa = new Set();
   for (const v of vistas) {
     if (Array.isArray(v.seasonIds) && v.seasonIds.length) precisa.add(v.showId);
@@ -4734,7 +4966,7 @@ async function coletarSerializd(usuario, informar) {
     feitas++;
     informar('Temporadas: ' + feitas + ' de ' + precisa.size + ' séries');
   }
-  return { formato: 'serializd-para-cinemateca', versao: 1, usuario: nome, geradoEm: new Date().toISOString(), diario, assistindo, pausadas, abandonadas, vistas, temporadas };
+  return { formato: 'serializd-para-cinemateca', versao: 1, usuario: nome, geradoEm: new Date().toISOString(), diario, assistindo, pausadas, abandonadas, vistas, querVer, temporadas };
 }
 
 function comandoSerializd(usuario) {
@@ -4865,7 +5097,7 @@ function planoSerializd(arquivo) {
   const mapas = (!Array.isArray(arquivo) && arquivo.temporadas) || {};
   const series = new Map();
   const pegar = (id, nome) => {
-    if (!series.has(id)) series.set(id, { tmdb: id, nome: '', registros: [], semData: new Set(), serieVista: false, situacao: '', curtiu: false });
+    if (!series.has(id)) series.set(id, { tmdb: id, nome: '', registros: [], semData: new Set(), serieVista: false, situacao: '', curtiu: false, querVer: false, querVerEm: null });
     const s = series.get(id);
     if (!s.nome && nome) s.nome = String(nome);
     return s;
@@ -4913,6 +5145,13 @@ function planoSerializd(arquivo) {
         if (!s.situacao) s.situacao = situacao;
       }
     }
+    for (const item of arquivo.querVer || []) {
+      const id = inteiroOuNulo(item && item.showId, 1);
+      if (!id) continue;
+      const s = pegar(id, item.showName);
+      s.querVer = true;
+      s.querVerEm = dataSerializd(item.dateAdded);
+    }
     for (const item of arquivo.vistas || []) {
       const id = inteiroOuNulo(item && item.showId, 1);
       if (!id) continue;
@@ -4936,7 +5175,7 @@ function planoSerializd(arquivo) {
     semData += soltos + s.registros.filter(r => !r.data).length;
   }
   const lista = [...series.values()];
-  return { series: lista, registros, semData, episodios, especiais, ignorados, comSituacao: lista.filter(s => s.situacao).length };
+  return { series: lista, registros, semData, episodios, especiais, ignorados, comSituacao: lista.filter(s => s.situacao).length, querVer: lista.filter(s => s.querVer).length };
 }
 
 function mostrarPlanoSerializd(arquivo) {
@@ -4952,6 +5191,7 @@ function mostrarPlanoSerializd(arquivo) {
     corpo: `<p class="resumo" style="margin:4px 0 12px">${plural(plano.series.length, 'série', 'séries')} e ${plural(plano.registros, 'registro', 'registros')} encontrados.</p>
       <ul class="lista-simples">
         ${plano.semData ? `<li>${plural(plano.semData, 'registro não tem data e vai', 'registros não têm data e vão')} para o fim do diário, em Sem data.</li>` : ''}
+        ${plano.querVer ? `<li>${plural(plano.querVer, 'série da watchlist vai', 'séries da watchlist vão')} para o Quero ver.</li>` : ''}
         ${plano.comSituacao ? `<li>${plural(plano.comSituacao, 'série leva', 'séries levam')} a situação que está no Serializd: assistindo, pausada ou abandonada.</li>` : ''}
         ${plano.episodios ? `<li>${plural(plano.episodios, 'registro de episódio fica', 'registros de episódios ficam')} de fora, porque a cinemateca registra temporadas inteiras.</li>` : ''}
         ${plano.especiais ? `<li>${plural(plano.especiais, 'registro de episódios especiais fica', 'registros de episódios especiais ficam')} de fora.</li>` : ''}
@@ -5009,6 +5249,7 @@ async function executarImportacaoSerializd() {
   let novosRegistros = 0;
   let pulados = 0;
   let novosTitulos = 0;
+  let paraQueroVer = 0;
   alterar(() => {
     plano.series.forEach((serie, i) => {
       if (!feitas.has(i)) return;
@@ -5026,6 +5267,11 @@ async function executarImportacaoSerializd() {
         if (!meta) semTmdb.push(nome);
       }
       if (serie.curtiu) t.favorito = true;
+      if (serie.querVer && !t.querVer) {
+        t.querVer = true;
+        t.querVerEm = serie.querVerEm || hojeISO();
+        paraQueroVer++;
+      }
       const existentes = dados.registros.filter(r => r.titulo === t.id);
       const soltos = [...serie.semData].sort((a, b) => a - b).map(n => ({ data: null, nota: null, temporada: n, revisto: false, comentario: '', tags: [] }));
       if (serie.serieVista) soltos.push({ data: null, nota: null, temporada: null, revisto: false, comentario: '', tags: [] });
@@ -5051,6 +5297,7 @@ async function executarImportacaoSerializd() {
     titulo: cancelado ? 'Importação parada' : 'Importação concluída',
     corpo: `<p class="resumo" style="margin:4px 0 12px">${plural(novosRegistros, 'registro entrou', 'registros entraram')} no diário${novosTitulos ? `, com ${plural(novosTitulos, 'série nova', 'séries novas')}` : ''}.</p>
       <ul class="lista-simples">
+        ${paraQueroVer ? `<li>${plural(paraQueroVer, 'série foi', 'séries foram')} para o Quero ver.</li>` : ''}
         ${pulados ? `<li>${plural(pulados, 'registro já estava', 'registros já estavam')} no diário e ${pulados === 1 ? 'foi pulado' : 'foram pulados'}.</li>` : ''}
         ${cancelado && restantes ? `<li>${plural(restantes, 'série ficou', 'séries ficaram')} de fora. Importe de novo para completar: o que já entrou é pulado.</li>` : ''}
         ${semTmdb.length ? `<li>${plural(semTmdb.length, 'série não foi achada', 'séries não foram achadas')} no TMDB e ${semTmdb.length === 1 ? 'entrou' : 'entraram'} sem pôster: ${esc(juntarNomes(semTmdb.slice(0, 8)))}${semTmdb.length > 8 ? ' e outras' : ''}.</li>` : ''}
@@ -5742,8 +5989,15 @@ const ACOES = {
     render();
   },
   'ver-favoritos': () => {
-    Object.assign(estado.vistos, { busca: '', onde: '', genero: '', tipo: '', situacao: '', favoritos: true });
-    irPara('vistos');
+    Object.assign(estado.diario, { busca: '', onde: '', genero: '', tipo: '', situacao: '', favoritos: true });
+    irPara('diario');
+  },
+  'quero-ver-previa': b => alternarQueroVerPrevia(b.dataset.lista, Number(b.dataset.indice)),
+  'alternar-quero-ver': b => alternarQueroVer(b.dataset.id, b),
+  'mostrar-metas': b => {
+    const ligar = b.dataset.valor === 'sim';
+    if (dados.preferencias.mostrarMetas === ligar) return;
+    alterar(() => { dados.preferencias.mostrarMetas = ligar; }, { mensagem: ligar ? 'Metas ligadas.' : 'Metas desligadas. Dá para religar em Configurações, Metas.' });
   },
   'ano-estatisticas': b => { estado.estatisticas.ano = b.dataset.ano; render(); },
   'definir-meta': b => abrirMeta(b.dataset.ano || hojeISO().slice(0, 4)),
@@ -5852,7 +6106,7 @@ const ACOES = {
     avisar(valor ? 'ID do aplicativo guardado neste aparelho.' : 'Voltou a valer o ID padrão.');
   },
   'aviso-acao': () => {
-    $('#aviso').hidden = true;
+    esconderAviso();
     const fn = estado.avisoFn;
     estado.avisoFn = null;
     if (fn) fn();
@@ -6090,6 +6344,15 @@ function ligarEventos() {
       const resumo = form.querySelector('[data-resumo-generos]');
       if (resumo) resumo.textContent = resumoGeneros([...form.querySelectorAll('[name="genero"]:checked')].map(c => c.value));
     }
+  });
+
+  document.addEventListener('focusout', e => {
+    if (!e.target.matches || !e.target.matches('input, textarea, select')) return;
+    setTimeout(() => {
+      const ativo = document.activeElement;
+      if (ativo && ativo.matches && ativo.matches('input, textarea, select')) return;
+      window.scrollTo(window.scrollX, window.scrollY);
+    }, 80);
   });
 
   document.addEventListener('toggle', e => {
