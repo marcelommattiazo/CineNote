@@ -1104,15 +1104,29 @@ details[open] > .config-cabecalho::after { transform: rotate(45deg); }
 
 /* ---------- Telas pequenas ---------- */
 
-@media (max-width: 640px) {
+/* Janelas em celular e tablet: medidas pela parte visível da tela (--vv-*), que o app atualiza
+   quando o teclado abre ou fecha. Assim nada depende de como o iOS ajusta a tela por baixo. */
+@media (max-width: 640px), (pointer: coarse) {
   .modal {
-    width: 100%; max-width: 100%; margin: auto 0 0; border-radius: 18px 18px 0 0;
-    max-height: 92%;
+    inset-inline: 0; top: auto; bottom: var(--vv-base, 0px);
+    width: min(100%, 680px); max-width: 100%; margin: 0 auto; border-radius: 18px 18px 0 0;
+    max-height: calc(var(--vv-altura, 100dvh) * .92);
   }
-  .modal.pequeno { width: 100%; }
-  .modal.tela-cheia { inset: 0; width: 100%; height: 100%; max-height: 100%; border-radius: 0; margin: 0; }
+  .modal.tela-cheia {
+    top: var(--vv-topo, 0px); bottom: auto;
+    width: 100%; height: var(--vv-altura, 100dvh); max-height: none; border-radius: 0; margin: 0;
+  }
   .modal.tela-cheia .modal-cabecalho, .modal.tela-cheia .busca-topo { padding-top: calc(10px + var(--seguro-topo)); }
   .modal.ficha-modal .modal-cabecalho { padding-top: calc(8px + var(--seguro-topo)); }
+}
+
+@media (min-width: 641px) and (pointer: coarse) {
+  .modal.tela-cheia > :not(.modal-cabecalho) { width: min(100%, 760px); justify-self: center; }
+  .modal.tela-cheia > .modal-cabecalho { width: min(100%, 760px); justify-self: center; }
+  .modal.ficha-modal > .modal-cabecalho { width: 100%; }
+}
+
+@media (max-width: 640px) {
   .numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ranking li { grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr) 2rem; font-size: 13px; }
   .resumo { font-size: 17px; }
@@ -1175,7 +1189,7 @@ const PREFIXO = 'minha-cinemateca';
 const ONEDRIVE_CLIENT_ID = 'b5815c83-06aa-4229-ae1f-81b4cdd536b9';
 const TMDB_API = 'https://api.themoviedb.org/3/';
 const TMDB_IMG = 'https://image.tmdb.org/t/p/';
-const VERSAO_APP = '2026.09.30-1815';
+const VERSAO_APP = '2026.09.30-2308';
 
 const GENEROS = [
   ['acao', 'Ação'],
@@ -4902,12 +4916,29 @@ async function atualizarTudoDoTMDB() {
    não deixa um site de fora ler os dados. */
 
 async function coletarSerializd(usuario, informar) {
-  const api = 'https://serializd.onrender.com/api/';
+  const noSite = typeof location !== 'undefined' && /(^|\.)serializd\.com$/i.test(location.hostname);
+  const bases = noSite ? ['/api/', 'https://serializd.onrender.com/api/'] : ['https://serializd.onrender.com/api/'];
+  let base = 0;
+  let decidida = false;
   const pegar = async caminho => {
-    const resposta = await fetch(api + caminho, { headers: { 'X-Requested-With': 'serializd_vercel' } });
-    const corpo = await resposta.json().catch(() => ({}));
-    if (!resposta.ok) throw Object.assign(new Error('O Serializd respondeu com erro ' + resposta.status + '.'), { status: resposta.status });
-    return corpo;
+    for (;;) {
+      let resposta;
+      try {
+        resposta = await fetch(bases[base] + caminho, { headers: { 'X-Requested-With': 'serializd_vercel' }, credentials: 'same-origin' });
+      } catch (e) {
+        if (!decidida && base < bases.length - 1) { base++; continue; }
+        throw e;
+      }
+      if (resposta.status === 401 || resposta.status === 403) {
+        throw Object.assign(new Error('O Serializd pediu login: entre na sua conta no serializd.com, neste navegador, e rode o comando de novo.'), { status: resposta.status, login: true });
+      }
+      const ehDado = /json/i.test(resposta.headers.get('content-type') || '');
+      const corpo = ehDado ? await resposta.json().catch(() => null) : null;
+      if (!decidida && base < bases.length - 1 && (resposta.status === 404 || corpo === null)) { base++; continue; }
+      decidida = true;
+      if (!resposta.ok) throw Object.assign(new Error('O Serializd respondeu com erro ' + resposta.status + '.'), { status: resposta.status });
+      return corpo || {};
+    }
   };
   const nome = String(usuario || '').trim().replace(/^@/, '');
   const u = encodeURIComponent(nome);
@@ -5021,6 +5052,8 @@ async function lerSerializdDireto() {
     if (botao) botao.disabled = false;
     if (e instanceof TypeError) {
       abrirComandoSerializd(usuario);
+    } else if (e.login) {
+      abrirComandoSerializd(usuario, { login: true });
     } else if (e.usuarioInvalido) {
       statusSerializd('Esse usuário não existe no Serializd. Confira o nome como aparece no seu perfil.');
     } else {
@@ -5029,16 +5062,18 @@ async function lerSerializdDireto() {
   }
 }
 
-function abrirComandoSerializd(usuario) {
+function abrirComandoSerializd(usuario, { login = false } = {}) {
   const comando = comandoSerializd(usuario);
   estado.formulario = { tipo: 'serializd', usuario, comando };
   abrirModal({
     titulo: 'Importar do Serializd',
-    corpo: `<p>O Serializd não deixou o app ler o diário direto daqui. Dá para fazer em dois minutos pelo computador, com a cinemateca aberta nele, usando o próprio site do Serializd:</p>
+    corpo: `<p>${login
+      ? 'O Serializd só mostra esse diário para quem está logado na conta, e o app não tem acesso ao seu login.'
+      : 'O Serializd não deixou o app ler o diário direto daqui.'} Dá para fazer em dois minutos pelo computador, com a cinemateca aberta nele, usando o próprio site do Serializd:</p>
       <ol class="passos">
-        <li>No computador, abra serializd.com no Chrome ou no Edge.</li>
+        <li>No computador, abra serializd.com no Chrome ou no Edge e entre na sua conta.</li>
         <li>Aperte F12 e clique na aba Console.</li>
-        <li>Toque em Copiar comando, aqui embaixo, cole no Console e aperte Enter. Se o navegador pedir, digite allow pasting e aperte Enter antes de colar.</li>
+        <li>Use o botão Copiar comando, aqui embaixo. No Console, digite allow pasting e aperte Enter (o navegador pede isso na primeira vez); depois cole o comando e aperte Enter.</li>
         <li>Espere o arquivo serializd-${esc(usuario)}.json ser baixado e escolha esse arquivo aqui.</li>
       </ol>
       <p class="ajuda" style="margin-top:12px">O comando só lê o diário público do seu perfil e salva tudo num arquivo. Ele não pede senha nem muda nada no Serializd.</p>
@@ -6201,6 +6236,35 @@ function ligarDeslizar() {
   }, { passive: true });
 }
 
+function acompanharParteVisivel() {
+  const vv = window.visualViewport;
+  const raiz = document.documentElement;
+  if (!vv) return;
+  let agendado = false;
+  const aplicar = () => {
+    agendado = false;
+    const alturaLayout = raiz.clientHeight || window.innerHeight;
+    const topo = Math.max(0, vv.offsetTop);
+    const altura = Math.max(160, Math.min(vv.height, alturaLayout));
+    const base = Math.max(0, alturaLayout - topo - altura);
+    raiz.style.setProperty('--vv-topo', `${Math.round(topo)}px`);
+    raiz.style.setProperty('--vv-altura', `${Math.round(altura)}px`);
+    raiz.style.setProperty('--vv-base', `${Math.round(base)}px`);
+  };
+  const agendar = () => {
+    if (agendado) return;
+    agendado = true;
+    requestAnimationFrame(aplicar);
+  };
+  vv.addEventListener('resize', agendar);
+  vv.addEventListener('scroll', agendar);
+  window.addEventListener('resize', agendar);
+  window.addEventListener('orientationchange', agendar);
+  document.addEventListener('focusin', agendar);
+  document.addEventListener('focusout', () => setTimeout(agendar, 120));
+  aplicar();
+}
+
 function bloquearZoom() {
   const instalado = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
   if (!instalado) return;
@@ -6215,6 +6279,7 @@ function bloquearZoom() {
 /* ===== Eventos ===== */
 
 function ligarEventos() {
+  acompanharParteVisivel();
   bloquearZoom();
   ligarDeslizar();
   ligarNotaPorArrasto();
