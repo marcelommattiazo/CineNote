@@ -1174,6 +1174,31 @@ details[open] > .config-cabecalho::after { transform: rotate(45deg); }
 
 .ponto-lugar { width: 9px; height: 9px; border-radius: 50%; background: var(--cor); display: inline-block; box-shadow: 0 0 0 1px rgba(0, 0, 0, .28); }
 
+/* ---------- Nota do público (TMDB) ---------- */
+
+.nota-publica {
+  display: inline-flex; align-items: center; gap: 3px; vertical-align: -1px;
+  font-size: 12.5px; color: var(--tela); white-space: nowrap;
+}
+.nota-publica b { font-weight: 700; }
+.nota-publica svg { color: var(--ingresso); flex: none; }
+.resultado .nota-publica { margin-right: 8px; }
+
+.nota-publica.sobre-poster {
+  position: absolute; left: 5px; bottom: 5px; z-index: 3;
+  padding: 2px 6px 2px 5px; border-radius: 999px; font-size: 11px; line-height: 1.35;
+  background: rgba(8, 10, 13, .76); color: #fff;
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.nota-publica.sobre-poster svg { color: #F2C14E; }
+
+.ficha-publico { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 6px; margin-top: 10px; color: var(--legenda); font-size: 13px; }
+.ficha-publico svg { color: var(--ingresso); align-self: center; }
+.ficha-publico b { font: 400 26px/1 var(--cartaz); letter-spacing: .01em; color: var(--tela); }
+
+.legenda-nota { display: flex; align-items: center; gap: 6px; margin-top: 16px; font-size: 12.5px; color: var(--legenda); }
+.legenda-nota svg { color: var(--ingresso); flex: none; }
+
 </style>
 </head>
 <body>
@@ -1189,7 +1214,8 @@ const PREFIXO = 'minha-cinemateca';
 const ONEDRIVE_CLIENT_ID = 'b5815c83-06aa-4229-ae1f-81b4cdd536b9';
 const TMDB_API = 'https://api.themoviedb.org/3/';
 const TMDB_IMG = 'https://image.tmdb.org/t/p/';
-const VERSAO_APP = '2026.09.30-2308';
+const VOTOS_MINIMOS = 10; // com menos votos que isso, a média do público no TMDB não é mostrada
+const VERSAO_APP = '2026.10.11-1730';
 
 const GENEROS = [
   ['acao', 'Ação'],
@@ -1337,6 +1363,13 @@ function numero(n, casas = 0) {
   return Number(n).toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
 }
 
+const formatoCompacto = new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 });
+
+function votosTexto(n) {
+  const v = Math.max(0, Math.round(Number(n) || 0));
+  return `${v >= 1000 ? formatoCompacto.format(v) : numero(v)} ${v === 1 ? 'voto' : 'votos'}`;
+}
+
 function plural(n, um, varios) {
   return `${numero(n)} ${n === 1 ? um : varios}`;
 }
@@ -1426,6 +1459,15 @@ function notaValida(v) {
   return Math.min(5, Math.max(0.5, Math.round(n * 2) / 2));
 }
 
+function notaPublicaValida(v) {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 && n <= 10 ? Math.round(n * 10) / 10 : null;
+}
+
+function temNotaPublica(t) {
+  return !!(t && t.notaTMDB && t.votosTMDB >= VOTOS_MINIMOS);
+}
+
 function listaDeTextos(v, max = 12) {
   return Array.isArray(v) ? v.map(x => texto(x, 200).trim()).filter(Boolean).slice(0, max) : [];
 }
@@ -1455,6 +1497,8 @@ function normalizarTitulo(t) {
     querVerEm: dataValida(t.querVerEm) ? t.querVerEm : null,
     disponivel: listaDeTextos(t.disponivel, 20),
     disponivelEm: dataValida(t.disponivelEm) ? t.disponivelEm : null,
+    notaTMDB: notaPublicaValida(t.notaTMDB),
+    votosTMDB: inteiroOuNulo(t.votosTMDB, 0),
     tituloManual: !!t.tituloManual,
     posterManual: !!t.posterManual,
     generosManual: !!t.generosManual,
@@ -1862,14 +1906,17 @@ async function iniciarApp() {
   if (guardados && limparSoltos()) agendarGravacao();
   const pedidoInicial = lerPedidoDoEndereco();
   history.replaceState({ aba: 'inicio' }, '');
+  const voltandoDoLogin = /[?&](code|error)=/.test(location.search);
+  if (!voltandoDoLogin && ligacaoPrecisaRenovar() && podeRenovarEmSilencio()
+    && await renovarLigacaoEmSilencio({ aba: pedidoInicial.aba || 'inicio', acao: pedidoInicial.acao })) return;
   if (pedidoInicial.aba && pedidoInicial.aba !== 'inicio') irPara(pedidoInicial.aba);
   else render();
   if (!guardados) await gravarAgora();
   pedirArmazenamentoPersistente();
   registrarServicoOffline();
   await iniciarOneDrive();
-  if (pedidoInicial.acao === 'registrar') abrirBusca();
-  if (!oneDriveLigado()) lembrarBackup();
+  if ((pedidoInicial.acao || estado.acaoDepoisDoLogin) === 'registrar') abrirBusca();
+  if (!oneDriveLigado() && !oneDriveExpirado()) lembrarBackup();
   setTimeout(atualizarEmSegundoPlano, 1500);
 }
 
@@ -2043,6 +2090,11 @@ function generosDoTMDB(ids, idioma) {
   return GENEROS.map(g => g[0]).filter(g => lista.has(g));
 }
 
+function notaPublicaDe(item) {
+  const votos = inteiroOuNulo(item && item.vote_count, 0) || 0;
+  return { notaTMDB: votos ? notaPublicaValida(item.vote_average) : null, votosTMDB: votos };
+}
+
 function previaDoResultado(item, tipoForcado) {
   const tipo = tipoForcado || (item.media_type === 'tv' ? 'serie' : 'filme');
   const data = tipo === 'serie' ? item.first_air_date : item.release_date;
@@ -2058,6 +2110,7 @@ function previaDoResultado(item, tipoForcado) {
     generos: generosDoTMDB(item.genre_ids, item.original_language),
     idioma: item.original_language || '',
     sinopse: item.overview || '',
+    ...notaPublicaDe(item),
   };
 }
 
@@ -2102,6 +2155,7 @@ function metaDoFilme(d) {
     sinopse: d.overview || '',
     idioma: d.original_language || '',
     pais: ((d.production_countries || [])[0] || {}).iso_3166_1 || '',
+    ...notaPublicaDe(d),
     provedores: provedoresBR(d['watch/providers']),
     completa: true,
   };
@@ -2134,6 +2188,7 @@ function metaDaSerie(d) {
       n: s.season_number, episodios: s.episode_count, data: s.air_date || null, poster: s.poster_path || '', nome: s.name || '',
     })),
     statusTMDB: d.status || '',
+    ...notaPublicaDe(d),
     provedores: provedoresBR(d['watch/providers']),
     completa: true,
   };
@@ -2238,6 +2293,14 @@ function textoDisponibilidade(meta) {
 
 /* ----- Atualizar os dados guardados ----- */
 
+function guardarNotaPublica(t, meta) {
+  if (!meta || meta.votosTMDB === undefined || meta.votosTMDB === null) return false;
+  if (t.notaTMDB === meta.notaTMDB && t.votosTMDB === meta.votosTMDB) return false;
+  t.notaTMDB = meta.notaTMDB;
+  t.votosTMDB = meta.votosTMDB;
+  return true;
+}
+
 function aplicarMeta(t, meta, { forcar = false } = {}) {
   if (!meta) return;
   if ((forcar || !t.tituloManual) && meta.titulo) t.titulo = meta.titulo;
@@ -2252,6 +2315,7 @@ function aplicarMeta(t, meta, { forcar = false } = {}) {
   if (meta.elenco && meta.elenco.length) t.elenco = meta.elenco;
   if ((forcar || !t.generosManual) && meta.generos && meta.generos.length) t.generos = [...meta.generos];
   if (meta.tmdb) t.tmdb = meta.tmdb;
+  guardarNotaPublica(t, meta);
   if (t.tipo === 'serie') {
     if (meta.temporadas && meta.temporadas.length) t.temporadas = normalizarTitulo({ tipo: 'serie', temporadas: meta.temporadas }).temporadas;
     if (meta.statusTMDB) t.statusTMDB = meta.statusTMDB;
@@ -2321,7 +2385,7 @@ async function atualizarDisponibilidade() {
   if (estado.conferindoDisponibilidade || !chaveTMDB() || !navigator.onLine) return;
   const hoje = hojeISO();
   const alvos = dados.titulos
-    .filter(t => t.querVer && t.tmdb && (!t.disponivelEm || diasEntre(t.disponivelEm, hoje) >= 3))
+    .filter(t => t.querVer && t.tmdb && (!t.disponivelEm || diasEntre(t.disponivelEm, hoje) >= 3 || t.votosTMDB === null))
     .slice(0, 40);
   if (!alvos.length) return;
   estado.conferindoDisponibilidade = true;
@@ -2333,6 +2397,7 @@ async function atualizarDisponibilidade() {
         const t = tituloPorId(id);
         if (!t) continue;
         if (!t.tmdbEm || diasEntre(t.tmdbEm, hoje) >= 30) aplicarMeta(t, meta);
+        guardarNotaPublica(t, meta);
         t.disponivel = disponibilidadeDe(meta);
         t.disponivelEm = hoje;
       }
@@ -2384,6 +2449,30 @@ function estrelasHTML(nota, tamanho = 13, { vazias = false } = {}) {
   if (!nota) return '';
   const rotulo = `Nota ${notaTexto(nota)} de 5`;
   return `<span class="estrelas${vazias ? '' : ' so-cheias'}" style="--v:${Number(nota)};--tam:${tamanho}px" role="img" aria-label="${rotulo}"></span>`;
+}
+
+function estrelaPublicaSVG(tamanho = 12) {
+  return `<svg viewBox="0 0 24 24" width="${tamanho}" height="${tamanho}" fill="currentColor" aria-hidden="true"><path d="M12 2.6l2.85 5.95 6.55.84-4.8 4.55 1.22 6.5L12 17.27 6.18 20.44l1.22-6.5-4.8-4.55 6.55-.84z"/></svg>`;
+}
+
+function notaPublicaRotulo(t) {
+  return temNotaPublica(t) ? `nota ${numero(t.notaTMDB, 1)} no TMDB` : '';
+}
+
+function notaPublicaHTML(t, { sobrePoster = false } = {}) {
+  if (!temNotaPublica(t)) return '';
+  const nota = numero(t.notaTMDB, 1);
+  const rotulo = `Nota do público no TMDB: ${nota} de 10, com ${votosTexto(t.votosTMDB)}`;
+  return `<span class="nota-publica${sobrePoster ? ' sobre-poster' : ''}" role="img" aria-label="${esc(rotulo)}" title="${esc(rotulo)}">${estrelaPublicaSVG(sobrePoster ? 10 : 12)}<b>${nota}</b></span>`;
+}
+
+function notaPublicaFichaHTML(t) {
+  if (!temNotaPublica(t)) return '';
+  return `${estrelaPublicaSVG(15)}<b>${numero(t.notaTMDB, 1)}</b><span>no TMDB · ${votosTexto(t.votosTMDB)}</span>`;
+}
+
+function legendaNotaPublicaHTML() {
+  return `<p class="legenda-nota">${estrelaPublicaSVG(12)}Nota média do público no TMDB, de 0 a 10.</p>`;
 }
 
 function coracaoMini(t, tamanho = 14) {
@@ -2564,7 +2653,8 @@ function renderEstadoSalvo() {
   let texto = '';
   let pendente = false;
   const sessao = lerSessaoOneDrive();
-  if (estado.erroOneDrive) { texto = 'OneDrive precisa de atenção'; pendente = true; }
+  if (oneDriveExpirado()) { texto = 'OneDrive desconectado'; pendente = true; }
+  else if (estado.erroOneDrive) { texto = 'OneDrive precisa de atenção'; pendente = true; }
   else if (estado.sincronizando) texto = 'Sincronizando…';
   else if (estado.erroGravacao) { texto = 'Não guardado'; pendente = true; }
   else if (estado.gravando || estado.pendentes) texto = 'Guardando…';
@@ -2712,14 +2802,17 @@ function telaBoasVindas() {
         <button type="button" class="botao" data-acao="importar-serializd">Importar do Serializd</button>
       </div>
     </section>
-    ${chaveTMDB() ? '' : `<section class="secao">${cartaoChaveHTML()}</section>`}
     <section class="secao">
       <div class="cartao">
-        <h3>Já tem uma cópia de segurança?</h3>
-        <p class="detalhe">Traga o diário de outro aparelho escolhendo o arquivo .json, ou ligue o OneDrive em Configurações.</p>
-        <div class="acoes"><button type="button" class="botao pequeno" data-acao="restaurar-arquivo">Restaurar de um arquivo</button></div>
+        <h3>Seu diário já está no OneDrive?</h3>
+        <p class="detalhe">Se você já usava o app com o OneDrive, o diário continua lá, com a chave do TMDB e as configurações. Conecte a conta e ele volta para este aparelho.</p>
+        <div class="acoes">
+          <button type="button" class="botao primario pequeno" data-acao="trazer-do-onedrive">Trazer do OneDrive</button>
+          <button type="button" class="botao pequeno" data-acao="restaurar-arquivo">Restaurar de um arquivo</button>
+        </div>
       </div>
-    </section>`;
+    </section>
+    ${chaveTMDB() ? '' : `<section class="secao">${cartaoChaveHTML()}</section>`}`;
 }
 
 function seriesEmAndamento() {
@@ -2831,6 +2924,7 @@ function telaInicio() {
 
 const ORDENS_QUERO = [
   ['recente', 'Adicionados por último'],
+  ['nota', 'Mais bem avaliados'],
   ['lancamento', 'Lançamento'],
   ['titulo', 'Título'],
   ['curtos', 'Mais curtos primeiro'],
@@ -2869,6 +2963,7 @@ function queroVerFiltrados(f, ignorar = '') {
     lancamento: (a, b) => lancamento(b).localeCompare(lancamento(a)),
     titulo: (a, b) => colador.compare(semArtigo(nomeDe(a)), semArtigo(nomeDe(b))),
     curtos: (a, b) => (a.duracao || 9999) - (b.duracao || 9999),
+    nota: (a, b) => (temNotaPublica(b) ? b.notaTMDB : -1) - (temNotaPublica(a) ? a.notaTMDB : -1),
   };
   const comparar = comparadores[f.ordem] || comparadores.recente;
   return lista.sort((a, b) => comparar(a, b) || colador.compare(semArtigo(nomeDe(a)), semArtigo(nomeDe(b))));
@@ -2984,9 +3079,9 @@ function conteudoDiario() {
 function tileQueroVerHTML(t) {
   const lugares = (t.disponivel || []).map(plataformaPorId).filter(Boolean);
   const nomes = lugares.map(p => p.nome);
-  const rotulo = `${nomeDe(t)}${t.ano ? `, ${t.ano}` : ''}${nomes.length ? `, disponível em ${juntarNomes(nomes)}` : ''}`;
+  const rotulo = `${nomeDe(t)}${t.ano ? `, ${t.ano}` : ''}${temNotaPublica(t) ? `, ${notaPublicaRotulo(t)}` : ''}${nomes.length ? `, disponível em ${juntarNomes(nomes)}` : ''}`;
   return `<button type="button" class="tile" data-acao="abrir-titulo" data-id="${esc(t.id)}" aria-label="${esc(rotulo)}">
-    ${posterHTML(t)}
+    ${posterHTML(t, { extra: notaPublicaHTML(t, { sobrePoster: true }) })}
     <span class="tile-linha">${lugares.slice(0, 5).map(p => `<i class="ponto-lugar" style="--cor:${corSegura(p.cor)}" title="${esc(p.nome)}"></i>`).join('')}</span>
   </button>`;
 }
@@ -3008,9 +3103,11 @@ function conteudoQueroVer() {
   const partes = [filmes ? plural(filmes, 'filme', 'filmes') : '', series ? plural(series, 'série', 'séries') : ''].filter(Boolean);
   const contagem = `<p class="contagem">${partes.length ? juntarNomes(partes) : 'Nenhum título'}${filtrosAtivos(f) ? ` <button type="button" class="link" data-acao="limpar-filtros" data-escopo="querover">Limpar filtros</button>` : ''}</p>`;
   if (!lista.length) return `${contagem}<p class="vazio">Nenhum título com esses filtros.</p>`;
-  const algumLugar = lista.some(t => (t.disponivel || []).length);
+  const rodape = [];
+  if (lista.some(temNotaPublica)) rodape.push('A estrela no pôster é a nota média do público no TMDB, de 0 a 10.');
+  if (lista.some(t => (t.disponivel || []).length)) rodape.push('Os pontos coloridos embaixo de cada pôster mostram em quais dos seus serviços o título está disponível agora.');
   return contagem + `<div class="grade">${lista.map(tileQueroVerHTML).join('')}</div>`
-    + (algumLugar ? '<p class="nota-rodape" style="margin-top:18px">Os pontos coloridos embaixo de cada pôster mostram em quais dos seus serviços o título está disponível agora.</p>' : '');
+    + (rodape.length ? `<p class="nota-rodape" style="margin-top:18px">${rodape.join(' ')}</p>` : '');
 }
 
 /* ===== Estatísticas ===== */
@@ -3217,14 +3314,18 @@ function telaConfig() {
     <div class="acoes"><button type="button" class="botao pequeno" data-acao="definir-meta" data-ano="${hojeISO().slice(0, 4)}">Definir meta de um ano</button></div>` : ''}`;
 
   const onedrive = `<p>Com o OneDrive ligado, o diário vai para um arquivo Cinemateca.json na sua conta, e outros aparelhos com o app recebem as alterações ao abrir.</p>
-    <p class="detalhe">${esc(textoSituacaoOneDrive())}${estado.erroOneDrive ? ` ${esc(estado.erroOneDrive)}` : ''}</p>
+    <p class="detalhe">${esc(textoSituacaoOneDrive())}${estado.erroOneDrive && !oneDriveExpirado() ? ` ${esc(estado.erroOneDrive)}` : ''}</p>
     <div class="acoes">
       ${oneDriveLigado()
         ? `<button type="button" class="botao primario pequeno" data-acao="sincronizar-onedrive">Sincronizar agora</button>
            <button type="button" class="botao pequeno" data-acao="escolher-arquivo-onedrive">${lerSessaoOneDrive().item ? 'Trocar o arquivo' : 'Escolher o arquivo'}</button>
            <button type="button" class="botao discreto pequeno" data-acao="desligar-onedrive">Desligar</button>`
-        : '<button type="button" class="botao primario pequeno" data-acao="conectar-onedrive">Conectar ao OneDrive</button>'}
+        : oneDriveExpirado()
+          ? `<button type="button" class="botao primario pequeno" data-acao="conectar-onedrive">Reconectar</button>
+             <button type="button" class="botao discreto pequeno" data-acao="desligar-onedrive">Desligar</button>`
+          : '<button type="button" class="botao primario pequeno" data-acao="conectar-onedrive">Conectar ao OneDrive</button>'}
     </div>
+    <p class="ajuda" style="margin-top:10px">Para apps que rodam no navegador, a Microsoft renova a permissão de acesso uma vez por dia. O app faz isso sozinho, com uma recarga rápida, e só pede a senha quando a própria Microsoft exige.</p>
     <div class="linha-chave" style="margin-top:14px">
       <input type="text" data-id-aplicativo value="${esc(idDoAplicativo())}" placeholder="ID do aplicativo da Microsoft" aria-label="ID do aplicativo da Microsoft" autocomplete="off" spellcheck="false">
       <button type="button" class="botao" data-acao="guardar-id-aplicativo">Guardar</button>
@@ -3265,7 +3366,7 @@ function telaConfig() {
     ${secaoConfig('plataformas', 'Onde assistiu', plural(dados.plataformas.length, 'lugar', 'lugares'), plataformas)}
     ${secaoConfig('metas', 'Metas', !metasLigadas ? 'Desligadas' : dados.metas[hojeISO().slice(0, 4)] ? `${dados.metas[hojeISO().slice(0, 4)]} filmes em ${hojeISO().slice(0, 4)}` : 'Ligadas', metasCorpo)}
     ${secaoConfig('nomes', 'Títulos', dados.preferencias.nomes === 'original' ? 'No idioma original' : 'Em português', nomes)}
-    ${secaoConfig('onedrive', 'OneDrive', oneDriveLigado() ? 'Conectado' : 'Desligado', onedrive)}
+    ${secaoConfig('onedrive', 'OneDrive', oneDriveLigado() ? 'Conectado' : oneDriveExpirado() ? 'Precisa reconectar' : 'Desligado', onedrive)}
     ${secaoConfig('copias', 'Cópias, importação e exportação', '', copias)}
     ${secaoConfig('aparencia', 'Aparência', '', aparencia)}
     <p class="sobre">Minha cinemateca, versão ${VERSAO_APP}. Dados de filmes, séries e pôsteres do TMDB. Este produto usa a API do TMDB, mas não é endossado nem certificado pelo TMDB. Disponibilidade nos serviços de streaming: JustWatch.</p>`;
@@ -3332,7 +3433,7 @@ function conteudoBusca() {
   if (!b.resultados.length) {
     return `<p class="estado-busca">Nada encontrado para “${esc(b.termo.trim())}”. Tente o título original ou acrescente o ano, como em “Duna 2021”.</p>${botaoManualHTML()}`;
   }
-  return `<ul class="resultados">${b.resultados.map(resultadoHTML).join('')}</ul>${botaoManualHTML()}`;
+  return `<ul class="resultados">${b.resultados.map(resultadoHTML).join('')}</ul>${b.resultados.some(temNotaPublica) ? legendaNotaPublicaHTML() : ''}${botaoManualHTML()}`;
 }
 
 function resultadoHTML(p, i) {
@@ -3345,7 +3446,7 @@ function resultadoHTML(p, i) {
     ${posterHTML({ ...p, id: `tmdb-${p.tipo}-${p.tmdb}` }, { tamanho: 'w92', dobro: 'w185' })}
     <span>
       <span class="resultado-titulo">${esc(principal)}${p.ano ? `<span class="ano">${p.ano}</span>` : ''}</span>
-      <span class="detalhe" style="display:block"><span class="tipo-selo">${p.tipo === 'serie' ? 'Série' : 'Filme'}</span>${mostrarSegundo ? esc(segundo) : ''}</span>
+      <span class="detalhe" style="display:block"><span class="tipo-selo">${p.tipo === 'serie' ? 'Série' : 'Filme'}</span>${notaPublicaHTML(p)}${mostrarSegundo ? esc(segundo) : ''}</span>
     </span>
     ${vezes ? `<span class="visto-selo">${icone('check', 15, { traco: 2.4 })}${vezes > 1 ? `${vezes}×` : 'Visto'}</span>` : ''}
   </button>${estado.busca.modo === 'religar' ? '' : botaoQueroVerPrevia(p, 'resultados', i)}</li>`;
@@ -3357,11 +3458,12 @@ function vitrineHTML() {
   const recentes = titulosRecentes(12);
   const doDiario = recentes.length ? `<section class="bloco-busca"><h3>Do seu diário</h3><div class="fila">${recentes.map(t => `<button type="button" class="tile" data-acao="registrar-titulo" data-id="${esc(t.id)}" aria-label="Registrar ${esc(nomeDe(t))} de novo">${posterHTML(t)}<span class="tile-nome">${esc(nomeDe(t))}</span></button>`).join('')}</div></section>` : '';
   const v = b.vitrine;
-  const fila = (lista, nome) => `<div class="fila">${lista.map((p, i) => `<div class="tile-vitrine"><button type="button" class="tile" data-acao="escolher-resultado" data-lista="${nome}" data-indice="${i}" aria-label="${esc(nomeDaPrevia(p))}${p.ano ? `, ${p.ano}` : ''}">${posterHTML({ ...p, id: `tmdb-${p.tipo}-${p.tmdb}` })}<span class="tile-nome">${esc(nomeDaPrevia(p))}</span></button>${botaoQueroVerPrevia(p, nome, i, 'botao-quero mini')}</div>`).join('')}</div>`;
+  const fila = (lista, nome) => `<div class="fila">${lista.map((p, i) => `<div class="tile-vitrine"><button type="button" class="tile" data-acao="escolher-resultado" data-lista="${nome}" data-indice="${i}" aria-label="${esc(nomeDaPrevia(p))}${p.ano ? `, ${p.ano}` : ''}${temNotaPublica(p) ? `, ${notaPublicaRotulo(p)}` : ''}">${posterHTML({ ...p, id: `tmdb-${p.tipo}-${p.tmdb}` }, { extra: notaPublicaHTML(p, { sobrePoster: true }) })}<span class="tile-nome">${esc(nomeDaPrevia(p))}</span></button>${botaoQueroVerPrevia(p, nome, i, 'botao-quero mini')}</div>`).join('')}</div>`;
   let blocos = '';
   if (v) {
     if (v.cartaz.length) blocos += `<section class="bloco-busca"><h3>Nos cinemas</h3>${fila(v.cartaz, 'cartaz')}</section>`;
     if (v.alta.length) blocos += `<section class="bloco-busca"><h3>Em alta esta semana</h3>${fila(v.alta, 'alta')}</section>`;
+    if ([...v.cartaz, ...v.alta].some(temNotaPublica)) blocos += legendaNotaPublicaHTML();
   } else if (b.erroVitrine) {
     blocos = `<p class="estado-busca">${esc(b.erroVitrine)}</p>`;
   } else if (b.carregandoVitrine) {
@@ -3923,6 +4025,7 @@ function abrirFicha(id, { destaque = '' } = {}) {
             <h2 class="ficha-titulo">${esc(nomeDe(t))}</h2>
             ${outro ? `<p class="ficha-original">${esc(outro)}</p>` : ''}
             <p class="ficha-meta">${partes.map(p => `<span>${esc(p)}</span>`).join('')}</p>
+            <p class="ficha-publico" data-nota-publica${temNotaPublica(t) ? '' : ' hidden'}>${notaPublicaFichaHTML(t)}</p>
           </div>
         </div>
         ${credito ? `<p class="detalhe" style="margin-top:14px">${esc(credito)}</p>` : ''}
@@ -3959,9 +4062,11 @@ async function carregarOndeAssistir(t) {
   const hoje = hojeISO();
   const precisaMeta = !t.tmdbEm || diasEntre(t.tmdbEm, hoje) >= 30;
   const precisaLugar = t.querVer && t.disponivelEm !== hoje;
-  if (precisaMeta || precisaLugar) {
+  const mudouNota = meta.notaTMDB !== t.notaTMDB || meta.votosTMDB !== t.votosTMDB;
+  if (precisaMeta || precisaLugar || mudouNota) {
     alterar(() => {
       if (precisaMeta) aplicarMeta(t, meta);
+      guardarNotaPublica(t, meta);
       if (t.querVer) {
         t.disponivel = disponibilidadeDe(meta);
         t.disponivelEm = hoje;
@@ -3969,6 +4074,11 @@ async function carregarOndeAssistir(t) {
     });
   }
   if (estado.fichaAberta !== t.id) return;
+  const nota = document.querySelector('#modal [data-nota-publica]');
+  if (nota) {
+    nota.innerHTML = notaPublicaFichaHTML(t);
+    nota.hidden = !temNotaPublica(t);
+  }
   const bloco = document.querySelector('#modal [data-onde-assistir]');
   if (!bloco) return;
   const prov = meta.provedores;
@@ -4856,11 +4966,11 @@ function gerarPlanilhaExcel() {
       { titulo: 'Ano', largura: 7, tipo: 'numero' }, { titulo: 'Gêneros', largura: 28 }, { titulo: 'Direção ou criação', largura: 28 },
       { titulo: 'Registros', largura: 10, tipo: 'numero' }, { titulo: 'Última vez', largura: 11, tipo: 'data' },
       { titulo: 'Última nota', largura: 11, tipo: 'numero' }, { titulo: 'Favorito', largura: 9 }, { titulo: 'Situação', largura: 12 },
-      { titulo: 'Quero ver', largura: 10 }, { titulo: 'TMDB', largura: 10, tipo: 'numero' },
+      { titulo: 'Quero ver', largura: 10 }, { titulo: 'Nota TMDB', largura: 11, tipo: 'numero' }, { titulo: 'TMDB', largura: 10, tipo: 'numero' },
     ],
     linhas: [...dados.titulos].sort((a, b) => colador.compare(semArtigo(a.titulo), semArtigo(b.titulo))).map(t => [
       t.titulo, t.original, t.tipo === 'serie' ? 'Série' : 'Filme', t.ano, generos(t), t.direcao.join(', '),
-      registrosDe(t.id).length, ultimaVez(t), ultimaNota(t), t.favorito ? 'Sim' : '', t.tipo === 'serie' ? (SITUACAO_ROTULO[t.situacao] || '') : '', t.querVer ? 'Sim' : '', t.tmdb,
+      registrosDe(t.id).length, ultimaVez(t), ultimaNota(t), t.favorito ? 'Sim' : '', t.tipo === 'serie' ? (SITUACAO_ROTULO[t.situacao] || '') : '', t.querVer ? 'Sim' : '', temNotaPublica(t) ? t.notaTMDB : null, t.tmdb,
     ]),
   };
   return montarXLSX([diario, titulos]);
@@ -5347,6 +5457,11 @@ async function executarImportacaoSerializd() {
 const ONEDRIVE_ESCOPOS = 'Files.ReadWrite offline_access User.Read';
 const ONEDRIVE_CHAVE = `${PREFIXO}:onedrive`;
 const NOME_ARQUIVO_NUVEM = 'Cinemateca.json';
+// Para apps que rodam no navegador, a Microsoft dá uma autorização que vale 24 horas a partir do login
+// e não pode ser estendida. O app a refaz em silêncio (uma recarga rápida) antes que ela vença.
+const VALIDADE_DA_AUTORIZACAO = 24 * 3600e3;
+const RENOVAR_QUANDO_FALTAR = 6 * 3600e3;
+const ESPERA_APOS_RECUSA = 12 * 3600e3;
 
 function lerSessaoOneDrive() {
   try { return JSON.parse(localStorage.getItem(ONEDRIVE_CHAVE) || '{}'); } catch (e) { return {}; }
@@ -5380,6 +5495,37 @@ function oneDriveLigado() {
   return !!(s.token || s.refresh);
 }
 
+// A autorização venceu, mas a conta e o arquivo continuam guardados: basta reconectar.
+function oneDriveExpirado() {
+  const s = lerSessaoOneDrive();
+  return !oneDriveLigado() && !!s.item && !!s.conta;
+}
+
+function ligacaoPrecisaRenovar() {
+  const s = lerSessaoOneDrive();
+  if (!s.item || !s.conta) return false;
+  if (!s.refresh) return true;
+  return !!s.renovarAte && Date.now() > s.renovarAte - RENOVAR_QUANDO_FALTAR;
+}
+
+function podeRenovarEmSilencio() {
+  if (!navigator.onLine || !window.isSecureContext || !window.crypto || !crypto.subtle || !idDoAplicativo()) return false;
+  const s = lerSessaoOneDrive();
+  if (s.silencioRecusadoEm && Date.now() - s.silencioRecusadoEm < ESPERA_APOS_RECUSA) return false;
+  try {
+    const pendente = JSON.parse(sessionStorage.getItem(`${PREFIXO}:pkce`) || 'null');
+    if (pendente && pendente.modo === 'silencioso' && Date.now() - (pendente.em || 0) < 10 * 60e3) return false;
+  } catch (e) {
+    return false;
+  }
+  return true;
+}
+
+function dicaDeConta() {
+  const conta = lerSessaoOneDrive().conta || '';
+  return /^[^\s@]+@[^\s@]+$/.test(conta) ? conta : '';
+}
+
 function base64url(bytes) {
   let texto = '';
   bytes.forEach(b => { texto += String.fromCharCode(b); });
@@ -5392,24 +5538,25 @@ async function gerarPkce() {
   return { verificador, desafio: base64url(new Uint8Array(resumo)) };
 }
 
-async function conectarOneDrive() {
+async function irParaLoginMicrosoft({ silencioso = false, aba = estado.aba, acao = '' } = {}) {
   if (!idDoAplicativo()) {
     avisar('Informe o ID do aplicativo da Microsoft antes de conectar.');
-    return;
+    return false;
   }
-  if (!window.isSecureContext || !crypto.subtle) {
+  if (!window.isSecureContext || !window.crypto || !crypto.subtle) {
     avisar('O login da Microsoft só funciona com o app publicado em um endereço https.');
-    return;
+    return false;
   }
   const { verificador, desafio } = await gerarPkce();
   const marca = base64url(crypto.getRandomValues(new Uint8Array(12)));
   try {
-    sessionStorage.setItem(`${PREFIXO}:aba`, estado.aba);
-    sessionStorage.setItem(`${PREFIXO}:pkce`, JSON.stringify({ verificador, marca }));
+    sessionStorage.setItem(`${PREFIXO}:aba`, aba || 'inicio');
+    sessionStorage.setItem(`${PREFIXO}:pkce`, JSON.stringify({ verificador, marca, modo: silencioso ? 'silencioso' : 'interativo', acao, em: Date.now() }));
   } catch (e) {
-    avisar('O navegador bloqueou o armazenamento necessário para o login.');
-    return;
+    if (!silencioso) avisar('O navegador bloqueou o armazenamento necessário para o login.');
+    return false;
   }
+  const dica = dicaDeConta();
   const parametros = new URLSearchParams({
     client_id: idDoAplicativo(),
     response_type: 'code',
@@ -5419,9 +5566,31 @@ async function conectarOneDrive() {
     state: marca,
     code_challenge: desafio,
     code_challenge_method: 'S256',
-    prompt: 'select_account',
   });
-  location.assign(`https://login.microsoftonline.com/${autoridadeOneDrive()}/oauth2/v2.0/authorize?${parametros}`);
+  // Silenciosa: a Microsoft responde na hora, sem mostrar nada, se a conta ainda estiver aberta neste navegador.
+  if (silencioso) parametros.set('prompt', 'none');
+  else if (!dica) parametros.set('prompt', 'select_account');
+  if (dica) parametros.set('login_hint', dica);
+  const endereco = `https://login.microsoftonline.com/${autoridadeOneDrive()}/oauth2/v2.0/authorize?${parametros}`;
+  if (silencioso) location.replace(endereco);
+  else location.assign(endereco);
+  return true;
+}
+
+function conectarOneDrive() {
+  return irParaLoginMicrosoft();
+}
+
+function renovarLigacaoEmSilencio(opcoes = {}) {
+  return irParaLoginMicrosoft({ ...opcoes, silencioso: true });
+}
+
+function oferecerReconexao() {
+  if (!estado.oferecerReconexao) return;
+  estado.oferecerReconexao = false;
+  if (estado.reconexaoOferecida) return;
+  estado.reconexaoOferecida = true;
+  avisar('O OneDrive desconectou. As alterações ficam só neste aparelho até você reconectar.', { acao: 'Reconectar', fn: () => conectarOneDrive(), tempo: 20000 });
 }
 
 function limparEnderecoDoLogin() {
@@ -5441,11 +5610,19 @@ async function trocarPorToken(extra) {
     erro.oauth = dadosToken.error;
     throw erro;
   }
-  guardarSessaoOneDrive({
+  const agora = Date.now();
+  const novo = {
     token: dadosToken.access_token,
     refresh: dadosToken.refresh_token || lerSessaoOneDrive().refresh,
-    expiraEm: Date.now() + Math.max(60, (dadosToken.expires_in || 3600) - 120) * 1000,
-  });
+    expiraEm: agora + Math.max(60, (dadosToken.expires_in || 3600) - 120) * 1000,
+  };
+  if (extra.grant_type === 'authorization_code') {
+    // Renovações seguintes herdam esse prazo; só um novo login (mesmo silencioso) recomeça as 24 horas.
+    const segundos = Number(dadosToken.refresh_token_expires_in) || VALIDADE_DA_AUTORIZACAO / 1000;
+    novo.renovarAte = agora + segundos * 1000 - 5 * 60e3;
+    novo.silencioRecusadoEm = null;
+  }
+  guardarSessaoOneDrive(novo);
   return dadosToken.access_token;
 }
 
@@ -5458,24 +5635,40 @@ async function tokenDoOneDrive() {
   } catch (e) {
     if (!navigator.onLine || !e.oauth) throw Object.assign(new Error('sem internet'), { rede: true });
     guardarSessaoOneDrive({ token: null, expiraEm: 0, refresh: null });
-    estado.erroOneDrive = 'A ligação com o OneDrive expirou. Toque em Conectar de novo.';
+    estado.erroOneDrive = 'A ligação com o OneDrive venceu. Toque em Reconectar.';
+    estado.oferecerReconexao = true;
     return null;
   }
 }
 
 async function processarRetornoDoLogin() {
   const parametros = new URLSearchParams(location.search);
-  if (parametros.get('error')) {
-    estado.erroOneDrive = `A Microsoft recusou o login: ${parametros.get('error_description') || parametros.get('error')}`;
-    limparEnderecoDoLogin();
+  const erro = parametros.get('error');
+  const codigo = parametros.get('code');
+  let guardado = {};
+  try { guardado = JSON.parse(sessionStorage.getItem(`${PREFIXO}:pkce`) || '{}') || {}; } catch (e) { /* ignora */ }
+  const silencioso = guardado.modo === 'silencioso';
+  if (!erro && !codigo) {
+    // Uma renovação silenciosa que não voltou (app fechado no meio, por exemplo): não insiste agora.
+    if (silencioso) {
+      try { sessionStorage.removeItem(`${PREFIXO}:pkce`); } catch (e) { /* ignora */ }
+      guardarSessaoOneDrive({ silencioRecusadoEm: Date.now() });
+    }
     return;
   }
-  const codigo = parametros.get('code');
-  if (!codigo) return;
-  let guardado = {};
-  try { guardado = JSON.parse(sessionStorage.getItem(`${PREFIXO}:pkce`) || '{}'); } catch (e) { /* ignora */ }
   try { sessionStorage.removeItem(`${PREFIXO}:pkce`); } catch (e) { /* ignora */ }
   limparEnderecoDoLogin();
+  estado.acaoDepoisDoLogin = guardado.acao || '';
+  if (erro) {
+    if (silencioso) {
+      guardarSessaoOneDrive({ silencioRecusadoEm: Date.now() });
+      estado.erroOneDrive = 'A Microsoft pediu para você entrar de novo na conta. Toque em Reconectar.';
+      estado.oferecerReconexao = true;
+    } else {
+      estado.erroOneDrive = `A Microsoft recusou o login: ${parametros.get('error_description') || erro}`;
+    }
+    return;
+  }
   if (!guardado.verificador || guardado.marca !== parametros.get('state')) {
     estado.erroOneDrive = 'A resposta do login não confere. Tente conectar de novo.';
     return;
@@ -5488,15 +5681,21 @@ async function processarRetornoDoLogin() {
       redirect_uri: enderecoDeRetorno(),
     });
     estado.erroOneDrive = '';
-    const conta = await chamarGraph('/me?$select=displayName,userPrincipalName').catch(() => null);
-    if (conta) guardarSessaoOneDrive({ conta: conta.userPrincipalName || conta.displayName || '' });
+    if (!silencioso || !lerSessaoOneDrive().conta) {
+      const conta = await chamarGraph('/me?$select=displayName,userPrincipalName,mail').catch(() => null);
+      if (conta) guardarSessaoOneDrive({ conta: conta.userPrincipalName || conta.mail || conta.displayName || '' });
+    }
     estado.recemConectado = true;
   } catch (e) {
     estado.erroOneDrive = `Não foi possível concluir o login: ${e.message}`;
+    if (silencioso) {
+      guardarSessaoOneDrive({ silencioRecusadoEm: Date.now() });
+      estado.oferecerReconexao = true;
+    }
   }
 }
 
-async function chamarGraph(caminho, opcoes = {}) {
+async function chamarGraph(caminho, opcoes = {}, tentativa = 1) {
   const token = await tokenDoOneDrive();
   if (!token) throw Object.assign(new Error('sem ligação'), { semLigacao: true });
   let resposta;
@@ -5510,6 +5709,7 @@ async function chamarGraph(caminho, opcoes = {}) {
   }
   if (resposta.status === 401) {
     guardarSessaoOneDrive({ token: null, expiraEm: 0 });
+    if (tentativa === 1 && lerSessaoOneDrive().refresh) return chamarGraph(caminho, opcoes, 2);
     throw Object.assign(new Error('autorização expirada'), { semLigacao: true });
   }
   if (!resposta.ok) {
@@ -5622,11 +5822,58 @@ async function usarArquivoOneDrive(id) {
   const arquivo = (estado.itensOneDrive || new Map()).get(id);
   if (!arquivo) return;
   const atual = estado.pastaOneDrive || { trilha: [], nome: 'OneDrive' };
-  const caminho = [...atual.trilha.map(t => t.nome), atual.nome].join('/');
+  const caminho = arquivo.parentReference ? pastaDoItem(arquivo) : [...atual.trilha.map(t => t.nome), atual.nome].join('/');
+  await usarArquivo(arquivo, caminho);
+}
+
+async function usarArquivo(arquivo, caminho) {
   guardarSessaoOneDrive({ item: { id: arquivo.id, nome: arquivo.name, caminho, eTag: null }, assinatura: null });
   fecharModal();
   await sincronizarOneDrive({ primeiraVez: true });
   render();
+}
+
+function pastaDoItem(item) {
+  const bruto = ((item.parentReference && item.parentReference.path) || '').replace(/^\/drive\/root:?/, '').replace(/^\//, '');
+  let pasta = bruto;
+  try { pasta = decodeURIComponent(bruto); } catch (e) { /* mantém como veio */ }
+  return pasta || 'raiz do OneDrive';
+}
+
+// Depois de conectar sem arquivo escolhido (aparelho novo, ou dados apagados do navegador):
+// procura o diário pelo nome antes de pedir para navegar pelas pastas.
+async function procurarDiarioNoOneDrive() {
+  const campos = 'id,name,size,lastModifiedDateTime,eTag,file,folder,parentReference';
+  const achados = new Map();
+  try {
+    const raiz = await chamarGraph(`/me/drive/root:/${encodeURIComponent(NOME_ARQUIVO_NUVEM)}?$select=${campos}`);
+    if (raiz && raiz.id && !raiz.folder) achados.set(raiz.id, raiz);
+  } catch (e) {
+    if (e.semLigacao || e.rede) {
+      avisar(e.rede ? 'Sem conexão com o OneDrive agora.' : 'A ligação com o OneDrive venceu. Toque em Reconectar.');
+      return;
+    }
+  }
+  try {
+    const r = await chamarGraph(`/me/drive/root/search(q='cinemateca')?$select=${campos}&$top=50`);
+    for (const i of (r && r.value) || []) {
+      if (!i.folder && /\.json$/i.test(i.name || '') && /cinemateca/i.test(i.name || '')) achados.set(i.id, i);
+    }
+  } catch (e) { /* segue com o que achou */ }
+  const lista = [...achados.values()].sort((a, b) => String(b.lastModifiedDateTime || '').localeCompare(String(a.lastModifiedDateTime || '')));
+  if (!lista.length) {
+    await abrirEscolhaDeArquivo();
+    return;
+  }
+  const arquivo = lista[0];
+  const outros = lista.length - 1;
+  const escolha = await escolherEntre({
+    titulo: 'Encontrei seu diário no OneDrive',
+    texto: `${arquivo.name}, em ${pastaDoItem(arquivo)}, alterado em ${dataHoraBR(arquivo.lastModifiedDateTime)}.${outros ? ` Há mais ${plural(outros, 'arquivo parecido', 'arquivos parecidos')} no OneDrive.` : ''} A partir de agora o app mantém este arquivo sincronizado.`,
+    opcoes: ['Escolher outro', 'Usar este'],
+  });
+  if (escolha === 1) await usarArquivo(arquivo, pastaDoItem(arquivo));
+  else await abrirEscolhaDeArquivo();
 }
 
 /* ===== Sincronização ===== */
@@ -5676,7 +5923,10 @@ async function sincronizarOneDrive({ automatico = false, primeiraVez = false } =
     guardarSessaoOneDrive({ ultimoSync: new Date().toISOString() });
   } catch (e) {
     if (e.rede) estado.erroOneDrive = automatico ? '' : 'Sem conexão com o OneDrive agora.';
-    else if (e.semLigacao) estado.erroOneDrive = 'A ligação com o OneDrive expirou. Toque em Conectar de novo.';
+    else if (e.semLigacao) {
+      estado.erroOneDrive = 'A ligação com o OneDrive venceu. Toque em Reconectar.';
+      if (oneDriveExpirado()) estado.oferecerReconexao = true;
+    }
     else if (e.status === 404) estado.erroOneDrive = 'O arquivo não está mais no OneDrive. Escolha outro em Configurações.';
     else if (e.status === 412) { estado.erroOneDrive = ''; estado.sincPendente = true; }
     else if (e.formato) estado.erroOneDrive = 'O arquivo do OneDrive não é um diário da cinemateca. Escolha outro em Configurações.';
@@ -5689,6 +5939,7 @@ async function sincronizarOneDrive({ automatico = false, primeiraVez = false } =
       estado.sincPendente = false;
       agendarSincronizacao();
     }
+    oferecerReconexao();
   }
 }
 
@@ -5765,6 +6016,7 @@ async function desligarOneDrive() {
 
 function textoSituacaoOneDrive() {
   const s = lerSessaoOneDrive();
+  if (oneDriveExpirado()) return `A ligação${s.conta ? ` com ${s.conta}` : ''} venceu. Enquanto não reconectar, as alterações ficam só neste aparelho.`;
   if (!oneDriveLigado()) return 'Não conectado.';
   const partes = [`Conectado${s.conta ? ` como ${s.conta}` : ''}`];
   if (s.item) partes.push(`arquivo ${s.item.nome}${s.item.caminho ? ` em ${s.item.caminho}` : ''}`);
@@ -5780,18 +6032,21 @@ async function iniciarOneDrive() {
     abaAntes = sessionStorage.getItem(`${PREFIXO}:aba`) || '';
     sessionStorage.removeItem(`${PREFIXO}:aba`);
   } catch (e) { /* ignora */ }
+  if (abaAntes && TELAS[abaAntes] && abaAntes !== estado.aba) irPara(abaAntes);
   if (estado.recemConectado) {
     estado.recemConectado = false;
-    if (abaAntes && TELAS[abaAntes]) irPara(abaAntes);
-    else render();
     const s = lerSessaoOneDrive();
     if (s.item) await sincronizarOneDrive({ primeiraVez: !s.assinatura });
-    else await abrirEscolhaDeArquivo();
+    else await procurarDiarioNoOneDrive();
     return;
   }
-  if (estado.erroOneDrive && abaAntes === 'config') irPara('config');
+  if (oneDriveExpirado()) {
+    if (!estado.erroOneDrive) estado.erroOneDrive = 'A ligação com o OneDrive venceu. Toque em Reconectar.';
+    estado.oferecerReconexao = true;
+  }
   if (oneDriveLigado() && lerSessaoOneDrive().item) await sincronizarOneDrive({ automatico: true });
   renderEstadoSalvo();
+  oferecerReconexao();
 }
 
 /* ===== Criar o arquivo no OneDrive ===== */
@@ -6124,6 +6379,12 @@ const ACOES = {
     }
   },
   'conectar-onedrive': () => conectarOneDrive(),
+  'trazer-do-onedrive': () => {
+    const s = lerSessaoOneDrive();
+    if (oneDriveLigado() && s.item) sincronizarOneDrive();
+    else if (oneDriveLigado()) procurarDiarioNoOneDrive();
+    else conectarOneDrive();
+  },
   'sincronizar-onedrive': () => sincronizarOneDrive(),
   'escolher-arquivo-onedrive': () => abrirEscolhaDeArquivo(),
   'usar-arquivo-onedrive': b => usarArquivoOneDrive(b.dataset.id),
@@ -6263,6 +6524,14 @@ function acompanharParteVisivel() {
   document.addEventListener('focusin', agendar);
   document.addEventListener('focusout', () => setTimeout(agendar, 120));
   aplicar();
+}
+
+// Sem janela aberta, sem campo em edição e sem nada por gravar: dá para recarregar sem atrapalhar.
+function appOcioso() {
+  const ativo = document.activeElement;
+  return !document.querySelector('dialog[open]')
+    && !(ativo && ativo.matches && ativo.matches('input, textarea, select'))
+    && !estado.gravando && !estado.pendentes && !estado.sincronizando && !estado.lote;
 }
 
 function bloquearZoom() {
@@ -6454,7 +6723,17 @@ function ligarEventos() {
   });
 
   document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      estado.escondidoEm = Date.now();
+      return;
+    }
     if (document.visibilityState !== 'visible') return;
+    const longe = estado.escondidoEm ? Date.now() - estado.escondidoEm : 0;
+    estado.escondidoEm = 0;
+    if (longe > 120000 && appOcioso() && ligacaoPrecisaRenovar() && podeRenovarEmSilencio()) {
+      renovarLigacaoEmSilencio({ aba: estado.aba });
+      return;
+    }
     const s = lerSessaoOneDrive();
     const ultima = s.ultimoSync ? Date.parse(s.ultimoSync) : 0;
     if (oneDriveLigado() && s.item && Date.now() - ultima > 60000) sincronizarOneDrive({ automatico: true });
