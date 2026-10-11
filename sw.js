@@ -1,4 +1,4 @@
-const CACHE = 'cinemateca-1791750624';
+const CACHE = 'cinemateca-1791758075';
 const ARQUIVOS = ["./", "./index.html", "./manifest.json", "./icone-180.png", "./icone-192.png", "./icone-512.png", "./icone-maskable-512.png"];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARQUIVOS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {

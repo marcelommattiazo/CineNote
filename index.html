@@ -862,6 +862,10 @@ details[open] > .config-cabecalho::after { transform: rotate(45deg); }
 
 .busca-tipo { padding: 0 16px 8px; }
 
+.busca-tipo .segmentado { display: flex; width: 100%; }
+
+.busca-tipo .segmentado button { flex: 1; padding: 8px 13px; font-size: 14px; }
+
 .resultados { list-style: none; margin: 0; padding: 0; }
 
 .resultado {
@@ -883,45 +887,76 @@ details[open] > .config-cabecalho::after { transform: rotate(45deg); }
 
 .estado-busca { color: var(--legenda); font-size: 14px; padding: 14px 0; }
 
-.bloco-busca + .bloco-busca { margin-top: 22px; }
+.bloco-busca { margin-top: 26px; }
 
-.bloco-busca h3 { font: 400 21px/1 var(--cartaz); letter-spacing: .012em; margin: 6px 0 12px; }
+.bloco-busca h3 { font: 400 21px/1 var(--cartaz); letter-spacing: .012em; margin: 0 0 12px; }
+
+.chips-generos + .bloco-busca { margin-top: 10px; }
 
 .fila .tile .poster { width: 104px; }
 
 /* ---------- Formulário de registro ---------- */
 
-.registro-topo { display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 14px; align-items: center; margin-bottom: 6px; }
+.registro-topo {
+  display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 14px; align-items: center; margin-bottom: 6px;
+  width: 100%; padding: 0; border: 0; background: none; color: inherit; text-align: left; border-radius: 6px;
+}
 
-.registro-titulo { font: 400 28px/1.02 var(--cartaz); letter-spacing: .01em; }
+.registro-topo:active { background: color-mix(in srgb, var(--faixa) 55%, transparent); }
 
-.registro-meta { font-size: 13px; color: var(--legenda); margin-top: 5px; }
+.registro-topo-texto { display: grid; gap: 4px; min-width: 0; }
+
+.registro-titulo { display: block; font: 400 28px/1.02 var(--cartaz); letter-spacing: .01em; overflow-wrap: anywhere; }
+
+.registro-meta { display: block; font-size: 13px; color: var(--legenda); }
+
+.registro-ver-ficha { display: inline-flex; align-items: center; gap: 1px; font-size: 13px; font-weight: 600; color: var(--estrela); }
 
 .bloco-form { border: 0; padding: 0; margin: 20px 0 0; min-width: 0; }
 
 .bloco-form > legend, .bloco-form > .legenda { font-size: 13px; font-weight: 600; color: var(--legenda); padding: 0; margin-bottom: 10px; }
 
-.bloco-form .campo-data { margin-top: 10px; max-width: 220px; }
+.linha-quando { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+
+.linha-quando input[type="date"] { width: auto; min-width: 10.5rem; flex: 0 1 12.5rem; min-height: 44px; }
+
+.linha-quando input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+
+.linha-quando input[type="date"]:disabled { opacity: .38; }
+
+.quando-relativo { margin-top: 6px; min-height: 1.3em; font-size: 12.5px; color: var(--legenda); }
+
+.quando-relativo.alerta { color: var(--alerta); font-weight: 600; }
 
 .linha-dupla { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
 .opcao-check { display: flex; gap: 10px; align-items: center; font-size: 14.5px; margin-top: 18px; cursor: pointer; }
 
-.generos-form > summary { display: flex; align-items: baseline; gap: 10px; list-style: none; cursor: pointer; padding: 4px 0; }
+.opcao-discreta { display: inline-flex; align-items: center; gap: 7px; margin-top: 16px; font-size: 12.5px; color: var(--legenda); cursor: pointer; }
 
-.generos-form > summary::-webkit-details-marker { display: none; }
+.opcao-discreta input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--legenda); }
 
-.generos-form > summary .legenda { font-size: 13px; font-weight: 600; color: var(--legenda); flex: none; }
+.recolhivel > summary { display: flex; align-items: center; gap: 10px; list-style: none; cursor: pointer; padding: 6px 0; min-height: 32px; }
 
-.generos-form > summary [data-resumo-generos] { font-size: 14px; color: var(--tela); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recolhivel > summary::-webkit-details-marker { display: none; }
 
-.generos-form > summary .editar { margin-left: auto; font-size: 13px; font-weight: 600; color: var(--estrela); flex: none; }
+.recolhivel > summary .legenda { font-size: 13px; font-weight: 600; color: var(--legenda); flex: none; }
 
-.generos-form[open] > summary .editar { visibility: hidden; }
+.recolhivel > summary .resumo-escolha { font-size: 14px; color: var(--tela); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.generos-form[open] > summary [data-resumo-generos] { display: none; }
+.recolhivel > summary .resumo-escolha .ponto { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--cor); margin-right: 7px; vertical-align: 1px; }
 
-.generos-form > .chips { margin-top: 10px; }
+.recolhivel > summary .resumo-escolha .sugestao { font-size: 11.5px; font-weight: 600; color: var(--legenda); margin-left: 8px; }
+
+.recolhivel > summary .resumo-vazio { color: var(--legenda); }
+
+.recolhivel > summary .editar { margin-left: auto; font-size: 13px; font-weight: 600; color: var(--estrela); flex: none; }
+
+.recolhivel[open] > summary .editar { visibility: hidden; }
+
+.recolhivel[open][data-generos] > summary .resumo-escolha { display: none; }
+
+.recolhivel > .chips, .recolhivel > [data-chips-onde] { margin-top: 10px; }
 
 .aviso-disponivel { font-size: 12.5px; color: var(--legenda); margin-top: 10px; }
 
@@ -929,9 +964,13 @@ details[open] > .config-cabecalho::after { transform: rotate(45deg); }
 
 /* ---------- Ficha ---------- */
 
-.modal.ficha-modal .modal-cabecalho { position: absolute; top: 0; right: 0; z-index: 2; padding: 8px; min-height: 0; }
+.modal.ficha-modal .modal-cabecalho { position: absolute; top: 0; left: 0; right: 0; z-index: 2; padding: 8px; min-height: 0; pointer-events: none; }
 
-.modal.ficha-modal .modal-cabecalho .botao-icone { background: rgba(10, 12, 16, .55); color: #fff; }
+.modal.ficha-modal .modal-cabecalho > * { pointer-events: auto; }
+
+.modal.ficha-modal .modal-cabecalho .botao-icone { background: rgba(10, 12, 16, .55); color: #fff; margin-left: auto; }
+
+.voltar.sobre-fundo { background: rgba(10, 12, 16, .55); color: #fff; border-radius: 999px; padding: 8px 14px 8px 8px; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 
 .modal.ficha-modal[open] { grid-template-rows: minmax(0, 1fr) auto; }
 
@@ -1005,7 +1044,11 @@ details[open] > .config-cabecalho::after { transform: rotate(45deg); }
 
 .provedor img { width: 24px; height: 24px; border-radius: 6px; }
 
-.links-externos { display: flex; gap: 16px; margin-top: 26px; font-size: 13.5px; }
+.links-externos { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 26px; font-size: 13.5px; }
+
+.nota-fonte { margin-top: 12px; }
+
+.nota-fonte + .links-externos { margin-top: 10px; }
 
 /* ---------- Folha de filtro ---------- */
 
@@ -1165,12 +1208,14 @@ details[open] > .config-cabecalho::after { transform: rotate(45deg); }
   background: rgba(8, 10, 13, .66); color: #fff;
   -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
 }
-.botao-quero.mini[aria-pressed="true"] { color: var(--estrela); }
+.botao-quero.mini[aria-pressed="true"] { background: var(--estrela); color: var(--estrela-texto); }
 
 .linha-resultado { display: flex; align-items: center; gap: 4px; border-bottom: 1px solid var(--linha); }
 .linha-resultado .resultado { border-bottom: 0; flex: 1; min-width: 0; }
 
 .tile-vitrine { position: relative; min-width: 0; }
+
+.tile-vitrine > .tile { width: 100%; }
 
 .ponto-lugar { width: 9px; height: 9px; border-radius: 50%; background: var(--cor); display: inline-block; box-shadow: 0 0 0 1px rgba(0, 0, 0, .28); }
 
@@ -1199,6 +1244,59 @@ details[open] > .config-cabecalho::after { transform: rotate(45deg); }
 .legenda-nota { display: flex; align-items: center; gap: 6px; margin-top: 16px; font-size: 12.5px; color: var(--legenda); }
 .legenda-nota svg { color: var(--ingresso); flex: none; }
 
+/* ---------- Vitrine da busca ---------- */
+
+.chips-generos { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 2px -18px 16px; padding: 0 18px 2px; scroll-padding-inline: 18px; }
+.chips-generos::-webkit-scrollbar { display: none; }
+.chips-generos .chip { flex: none; min-height: 34px; padding: 5px 13px; font-size: 13.5px; }
+
+.destaques { margin: 0 -18px; }
+.destaques-trilho {
+  display: grid; grid-auto-flow: column; grid-auto-columns: min(86%, 520px); gap: 10px;
+  overflow-x: auto; scrollbar-width: none; padding: 0 18px 2px; scroll-snap-type: x mandatory; scroll-padding-inline: 18px;
+}
+.destaques-trilho::-webkit-scrollbar { display: none; }
+.destaque { position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: var(--faixa); scroll-snap-align: start; }
+.destaque-botao { position: absolute; inset: 0; display: block; width: 100%; padding: 0; border: 0; background: linear-gradient(135deg, var(--faixa), var(--poltrona)); color: #fff; text-align: left; }
+.destaque-botao img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.destaque-botao::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 0, 0, 0) 34%, rgba(0, 0, 0, .84)); }
+.destaque-texto { position: absolute; left: 14px; right: 58px; bottom: 12px; z-index: 1; display: grid; gap: 5px; }
+.destaque-texto > b { font: 400 28px/1 var(--cartaz); letter-spacing: .01em; text-shadow: 0 1px 10px rgba(0, 0, 0, .55); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.destaque-texto small { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 9px; font-size: 12.5px; color: rgba(255, 255, 255, .86); }
+.destaque .nota-publica { color: #fff; }
+.destaque .nota-publica svg { color: #F2C14E; }
+.destaque .botao-quero.mini { top: auto; bottom: 10px; right: 10px; }
+
+.grade.grade-busca { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 18px 10px; }
+.ordem-genero { margin: 0 0 16px; }
+
+.esqueleto-destaque, .esqueleto-titulo, .esqueleto-poster { background: var(--faixa); animation: pulsar 1.1s ease-in-out infinite alternate; }
+.esqueleto-destaque { width: min(86%, 520px); aspect-ratio: 16 / 9; border-radius: 12px; }
+.esqueleto-titulo { width: 42%; height: 18px; margin: 28px 0 12px; border-radius: 6px; }
+.esqueleto-poster { aspect-ratio: 2 / 3; border-radius: 4px; }
+@keyframes pulsar { from { opacity: .45; } to { opacity: .95; } }
+
+/* ---------- Notas em outros sites ---------- */
+
+.notas-externas { list-style: none; margin: 0; padding: 0; }
+.nota-externa {
+  display: grid; grid-template-columns: minmax(0, 8.4rem) minmax(0, 1fr) 4.4rem; gap: 12px; align-items: center;
+  padding: 9px 0; border-bottom: 1px solid var(--linha); color: inherit; text-decoration: none;
+}
+a.nota-externa:active { background: color-mix(in srgb, var(--faixa) 55%, transparent); }
+.nota-externa-nome { font-weight: 600; font-size: 14px; line-height: 1.2; min-width: 0; }
+.nota-externa-nome small { display: block; margin-top: 3px; font-weight: 500; font-size: 11.5px; color: var(--legenda); line-height: 1.3; }
+.nota-externa-barra { height: 6px; border-radius: 999px; background: var(--faixa); overflow: hidden; }
+.nota-externa-barra i { display: block; height: 100%; border-radius: inherit; background: var(--cor, var(--estrela)); }
+.nota-externa-valor { text-align: right; font-size: 12px; color: var(--legenda); white-space: nowrap; }
+.nota-externa-valor b { font: 400 23px/1 var(--cartaz); letter-spacing: .01em; color: var(--tela); }
+.estado-notas { margin-top: 10px; }
+
+/* Com mouse, as filas de pôsteres mostram uma barra fina para arrastar para o lado. */
+@media (pointer: fine) {
+  .fila, .andamento, .destaques-trilho, .chips-generos { scrollbar-width: thin; scrollbar-color: var(--linha-forte) transparent; }
+}
+
 </style>
 </head>
 <body>
@@ -1215,7 +1313,7 @@ const ONEDRIVE_CLIENT_ID = 'b5815c83-06aa-4229-ae1f-81b4cdd536b9';
 const TMDB_API = 'https://api.themoviedb.org/3/';
 const TMDB_IMG = 'https://image.tmdb.org/t/p/';
 const VOTOS_MINIMOS = 10; // com menos votos que isso, a média do público no TMDB não é mostrada
-const VERSAO_APP = '2026.10.11-1730';
+const VERSAO_APP = '2026.10.11-1934';
 
 const GENEROS = [
   ['acao', 'Ação'],
@@ -1314,8 +1412,6 @@ function isoLocal(data) {
 }
 
 function hojeISO() { return isoLocal(new Date()); }
-
-function ontemISO() { const d = new Date(); d.setDate(d.getDate() - 1); return isoLocal(d); }
 
 function dataValida(iso) { return typeof iso === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(iso) && !isNaN(paraData(iso)); }
 
@@ -1762,9 +1858,18 @@ const estado = {
   diario: { busca: '', onde: '', genero: '', tipo: '', favoritos: false },
   querover: { busca: '', onde: '', genero: '', tipo: '', favoritos: false, situacao: '', ordem: 'recente' },
   estatisticas: { ano: String(new Date().getFullYear()) },
-  busca: { termo: '', tipo: '', resultados: null, carregando: false, pedido: 0, erro: '', vitrine: null, modo: 'registrar', religar: null },
+  busca: {
+    termo: '', tipo: 'filme', tipoRegistrar: 'filme', genero: '', ordemGenero: 'populares',
+    resultados: null, carregando: false, pedido: 0, erro: '',
+    explorar: {}, carregandoExplorar: '', erroExplorar: '', listas: {}, grade: null, rolagem: 0,
+    modo: 'registrar', religar: null,
+  },
   formulario: null,
+  previaAberta: null,
+  origemFicha: null,
   cacheDetalhes: new Map(),
+  provedoresBR: {},
+  notasPendentes: new Map(),
   avisoFn: null,
   avisoTimer: null,
   gravando: false,
@@ -2229,19 +2334,152 @@ function detalhesDoTMDB(tipo, id) {
   return promessa;
 }
 
-async function carregarVitrine() {
-  const v = estado.busca.vitrine;
-  if (v && Date.now() - v.em < 3600000) return v;
-  const [cartaz, alta] = await Promise.all([
-    tmdb('movie/now_playing', { region: 'BR', page: 1 }).catch(e => { if (e.tipo === 'chave') throw e; return null; }),
-    tmdb('trending/all/week', {}).catch(() => null),
+/* ----- Vitrine da busca: o que ver ----- */
+
+/* Gêneros para explorar. As séries do TMDB juntam alguns gêneros ("Action & Adventure",
+   "Sci-Fi & Fantasy", "War & Politics"), por isso a lista das séries é menor. */
+const GENEROS_DESCOBRIR = {
+  filme: [
+    ['acao', 'Ação', '28'], ['aventura', 'Aventura', '12'], ['animacao', 'Animação', '16'], ['anime', 'Anime', '16', 'ja'],
+    ['comedia', 'Comédia', '35'], ['crime', 'Crime', '80'], ['documentario', 'Documentário', '99'], ['drama', 'Drama', '18'],
+    ['familia', 'Família', '10751'], ['fantasia', 'Fantasia', '14'], ['faroeste', 'Faroeste', '37'], ['ficcao', 'Ficção científica', '878'],
+    ['guerra', 'Guerra', '10752'], ['historia', 'História', '36'], ['misterio', 'Mistério', '9648'], ['musica', 'Música', '10402'],
+    ['romance', 'Romance', '10749'], ['suspense', 'Suspense', '53'], ['terror', 'Terror', '27'],
+  ],
+  serie: [
+    ['acao', 'Ação e aventura', '10759'], ['animacao', 'Animação', '16'], ['anime', 'Anime', '16', 'ja'], ['comedia', 'Comédia', '35'],
+    ['crime', 'Crime', '80'], ['documentario', 'Documentário', '99'], ['drama', 'Drama', '18'], ['familia', 'Família', '10751'],
+    ['ficcao', 'Ficção e fantasia', '10765'], ['faroeste', 'Faroeste', '37'], ['guerra', 'Guerra e política', '10768'],
+    ['misterio', 'Mistério', '9648'], ['reality', 'Reality', '10764'],
+  ],
+};
+const GENERO_EQUIVALENTE_SERIE = { aventura: 'acao', fantasia: 'ficcao' };
+
+function generoDescobrir(tipo, id) {
+  const alvo = tipo === 'serie' ? (GENERO_EQUIVALENTE_SERIE[id] || id) : id;
+  return (GENEROS_DESCOBRIR[tipo] || []).find(g => g[0] === alvo) || null;
+}
+
+function parametrosDescobrir(tipo, { genero = '', provedores = '', ordem = 'populares', pagina = 1 } = {}) {
+  const filme = tipo !== 'serie';
+  const p = { page: pagina, include_adult: 'false' };
+  const g = genero ? generoDescobrir(tipo, genero) : null;
+  if (g) {
+    p.with_genres = g[2];
+    if (g[3]) p.with_original_language = g[3];
+  }
+  if (provedores) {
+    p.with_watch_providers = provedores;
+    p.watch_region = 'BR';
+    p.with_watch_monetization_types = 'flatrate|free|ads';
+  }
+  if (ordem === 'avaliados') {
+    p.sort_by = 'vote_average.desc';
+    p['vote_count.gte'] = filme ? 600 : 250;
+  } else if (ordem === 'recentes') {
+    p.sort_by = filme ? 'primary_release_date.desc' : 'first_air_date.desc';
+    p[filme ? 'primary_release_date.lte' : 'first_air_date.lte'] = hojeISO();
+    p['vote_count.gte'] = 15;
+  } else {
+    p.sort_by = 'popularity.desc';
+    p['vote_count.gte'] = filme ? 50 : 20;
+  }
+  return p;
+}
+
+async function descobrir(tipo, opcoes = {}) {
+  const r = await tmdb(`discover/${tipo === 'serie' ? 'tv' : 'movie'}`, parametrosDescobrir(tipo, opcoes));
+  return {
+    itens: ((r && r.results) || []).map(i => previaDoResultado(i, tipo)),
+    paginas: Math.min(20, Number(r && r.total_pages) || 1),
+  };
+}
+
+async function provedoresDoBrasil(tipo) {
+  if (estado.provedoresBR[tipo]) return estado.provedoresBR[tipo];
+  const r = await tmdb(`watch/providers/${tipo === 'serie' ? 'tv' : 'movie'}`, { watch_region: 'BR' });
+  const lista = ((r && r.results) || []).map(p => ({ id: p.provider_id, nome: p.provider_name || '' })).filter(p => p.id);
+  if (lista.length) estado.provedoresBR[tipo] = lista;
+  return lista;
+}
+
+// Os serviços da lista "Onde assistiu" que o TMDB conhece, os mais usados no diário primeiro.
+function servicosParaVitrine(provedores) {
+  if (!provedores || !provedores.length) return [];
+  const usos = new Map();
+  for (const r of dados.registros) if (r.onde) usos.set(r.onde, (usos.get(r.onde) || 0) + 1);
+  return dados.plataformas
+    .map((plataforma, ordem) => ({
+      plataforma: { id: plataforma.id, nome: plataforma.nome },
+      ordem,
+      usos: usos.get(plataforma.id) || 0,
+      ids: provedores.filter(p => { const minha = plataformaDoProvedor(p.nome); return minha && minha.id === plataforma.id; }).map(p => p.id).slice(0, 6),
+    }))
+    .filter(s => s.ids.length)
+    .sort((a, b) => b.usos - a.usos || a.ordem - b.ordem)
+    .slice(0, 3);
+}
+
+// Os gêneros que mais aparecem nos registros desse tipo (pelo menos dois registros).
+function generosPreferidos(tipo) {
+  const contagem = new Map();
+  for (const { t } of registrosComTitulo()) {
+    if (t.tipo !== tipo) continue;
+    const contados = new Set();
+    for (const g of t.generos) {
+      const entrada = generoDescobrir(tipo, g);
+      if (!entrada || contados.has(entrada[0])) continue;
+      contados.add(entrada[0]);
+      contagem.set(entrada[0], (contagem.get(entrada[0]) || 0) + 1);
+    }
+  }
+  return [...contagem].filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).map(([g]) => g);
+}
+
+// Muda quando o diário passa a apontar outros serviços ou gêneros preferidos (depois de importar, por exemplo).
+function assinaturaExplorar(tipo) {
+  const provedores = estado.provedoresBR[tipo];
+  const servicos = provedores ? servicosParaVitrine(provedores).map(s => s.plataforma.id).join() : '?';
+  return `${servicos}|${generosPreferidos(tipo).slice(0, 2).join()}`;
+}
+
+function explorarValido(tipo) {
+  const ex = estado.busca.explorar[tipo];
+  return !!ex && Date.now() - ex.em < 3600000 && ex.assinatura === assinaturaExplorar(tipo);
+}
+
+async function carregarExplorar(tipo) {
+  if (explorarValido(tipo)) return estado.busca.explorar[tipo];
+  const filme = tipo !== 'serie';
+  const caminho = filme ? 'movie' : 'tv';
+  const itens = r => ((r && r.results) || []).map(i => previaDoResultado(i, tipo));
+  const pedir = (rota, params) => tmdb(rota, params).catch(e => { if (e.tipo === 'chave') throw e; return null; });
+  const [alta, cartaz, avaliados, breve, provedores] = await Promise.all([
+    pedir(`trending/${caminho}/week`),
+    pedir(filme ? 'movie/now_playing' : 'tv/on_the_air', filme ? { region: 'BR' } : {}),
+    pedir(`${caminho}/top_rated`),
+    filme ? pedir('movie/upcoming', { region: 'BR' }) : Promise.resolve(null),
+    provedoresDoBrasil(tipo).catch(e => { if (e.tipo === 'chave') throw e; return []; }),
   ]);
+  if (!alta && !cartaz && !avaliados) throw erroTMDB('Sem conexão com o TMDB', { tipo: 'rede' });
+  const servicos = servicosParaVitrine(provedores);
+  const generos = generosPreferidos(tipo).slice(0, 2);
+  const [porServico, porGenero] = await Promise.all([
+    Promise.all(servicos.map(s => descobrir(tipo, { provedores: s.ids.join('|') }).catch(() => null))),
+    Promise.all(generos.map(g => descobrir(tipo, { genero: g }).catch(() => null))),
+  ]);
+  const hoje = hojeISO();
   const nova = {
     em: Date.now(),
-    cartaz: ((cartaz && cartaz.results) || []).map(i => previaDoResultado(i, 'filme')).slice(0, 18),
-    alta: ((alta && alta.results) || []).filter(i => i.media_type === 'movie' || i.media_type === 'tv').map(i => previaDoResultado(i)).slice(0, 18),
+    alta: itens(alta),
+    cartaz: itens(cartaz),
+    avaliados: itens(avaliados),
+    breve: itens(breve).filter(p => p.estreia && p.estreia > hoje).sort((a, b) => a.estreia.localeCompare(b.estreia)),
+    servicos: servicos.map((s, i) => ({ plataforma: s.plataforma, itens: (porServico[i] && porServico[i].itens) || [] })),
+    generos: generos.map((g, i) => ({ genero: g, itens: (porGenero[i] && porGenero[i].itens) || [] })),
   };
-  if (cartaz || alta) estado.busca.vitrine = nova;
+  nova.assinatura = assinaturaExplorar(tipo);
+  estado.busca.explorar[tipo] = nova;
   return nova;
 }
 
@@ -2408,6 +2646,217 @@ async function atualizarDisponibilidade() {
 }
 
 
+/* ===== Notas em outros sites =====
+   O What's on? (whatson-api.onrender.com) reúne, pelo id do TMDB, as notas do IMDb, do Letterboxd,
+   do Rotten Tomatoes, do Metacritic e do Trakt. É gratuito para uso pessoal e não pede chave
+   (50 consultas por hora em cada aparelho). Roda num servidor que dorme quando ninguém usa, então
+   a primeira consulta depois de um tempo pode demorar. O Google e o Serializd não abrem as notas
+   para outros apps: para eles, a ficha só tem o link. */
+
+const NOTAS_API = 'https://whatson-api.onrender.com/';
+const NOTAS_CACHE = `${PREFIXO}:notas-externas`;
+const NOTAS_VALIDADE = 7 * 86400e3;
+const NOTAS_VALIDADE_SEM_NOTA = 3 * 86400e3;
+const NOTAS_LIMITE_CACHE = 300;
+
+const CORES_NOTAS = {
+  tmdb: '#01B4E4', imdb: '#F5C518', letterboxd: '#00E054', 'rt-critica': '#FA320A', 'rt-publico': '#F2A900',
+  'mc-critica': '#00CE7A', 'mc-publico': '#00CE7A', trakt: '#B44BE1',
+};
+
+function lerCacheNotas() {
+  try { return JSON.parse(localStorage.getItem(NOTAS_CACHE) || '{}') || {}; } catch (e) { return {}; }
+}
+
+function gravarCacheNotas(cache) {
+  const chaves = Object.keys(cache);
+  if (chaves.length > NOTAS_LIMITE_CACHE) {
+    chaves.sort((a, b) => (cache[a].em || 0) - (cache[b].em || 0))
+      .slice(0, chaves.length - NOTAS_LIMITE_CACHE)
+      .forEach(k => { delete cache[k]; });
+  }
+  try { localStorage.setItem(NOTAS_CACHE, JSON.stringify(cache)); } catch (e) { /* sem espaço: segue sem guardar */ }
+}
+
+function chaveNotas(base) {
+  return base && base.tmdb ? `${base.tipo === 'serie' ? 'serie' : 'filme'}:${base.tmdb}` : '';
+}
+
+function notasGuardadas(chave) {
+  const c = lerCacheNotas()[chave];
+  if (!c || !Array.isArray(c.notas)) return null;
+  return Date.now() - c.em < (c.notas.length ? NOTAS_VALIDADE : NOTAS_VALIDADE_SEM_NOTA) ? c : null;
+}
+
+function notasDoWhatsOn(item) {
+  const lista = [];
+  const numeroBom = v => (typeof v === 'number' && isFinite(v) && v > 0 ? v : null);
+  const endereco = u => (/^https:\/\/[^\s"'<>]+$/i.test(u || '') ? u : '');
+  const juntar = (id, nome, fonte, quem, escala, extra = {}) => {
+    if (!fonte || typeof fonte !== 'object') return;
+    const valor = numeroBom(fonte[`${quem}_rating`]);
+    if (valor === null || valor > escala) return;
+    lista.push({
+      id, nome, valor, escala, votos: numeroBom(fonte[`${quem}_rating_count`]), url: endereco(fonte.url),
+      quem: extra.quem || '', top: extra.top || null, selo: extra.selo || '',
+    });
+  };
+  const imdb = item.imdb;
+  const rt = item.rotten_tomatoes;
+  const mc = item.metacritic;
+  const top = imdb && numeroBom(imdb.top_ranking);
+  juntar('imdb', 'IMDb', imdb, 'users', 10, { top: top && top <= 250 ? Math.round(top) : null });
+  juntar('letterboxd', 'Letterboxd', item.letterboxd, 'users', 5);
+  juntar('rt-critica', 'Rotten Tomatoes', rt, 'critics', 100, { quem: 'crítica', selo: rt && rt.critics_certified ? 'Certified Fresh' : '' });
+  juntar('rt-publico', 'Rotten Tomatoes', rt, 'users', 100, { quem: 'público' });
+  juntar('mc-critica', 'Metacritic', mc, 'critics', 100, { quem: 'crítica', selo: mc && mc.must_see ? 'Must-See' : '' });
+  juntar('mc-publico', 'Metacritic', mc, 'users', 10, { quem: 'público' });
+  juntar('trakt', 'Trakt', item.trakt, 'users', 100);
+  return lista;
+}
+
+async function buscarNotasExternas(tipo, tmdb, { tempo = 60000 } = {}) {
+  const url = `${NOTAS_API}${tipo === 'serie' ? 'tvshow' : 'movie'}/${encodeURIComponent(tmdb)}?ratings_filters=all`;
+  const controle = new AbortController();
+  const timer = setTimeout(() => controle.abort(), tempo);
+  let resposta;
+  try {
+    resposta = await fetch(url, { signal: controle.signal });
+  } catch (e) {
+    throw Object.assign(new Error('As notas não responderam'), { tipo: controle.signal.aborted ? 'demora' : 'rede' });
+  } finally {
+    clearTimeout(timer);
+  }
+  if (resposta.status === 404) return [];
+  if (resposta.status === 429) throw Object.assign(new Error('Limite de consultas'), { tipo: 'limite' });
+  if (!resposta.ok) throw Object.assign(new Error(`Erro ${resposta.status}`), { tipo: 'http' });
+  const corpo = await resposta.json().catch(() => null);
+  const alvo = tipo === 'serie' ? 'tvshow' : 'movie';
+  const item = corpo && Array.isArray(corpo.results)
+    ? corpo.results.find(r => r && r.item_type === alvo)
+    : corpo && (!corpo.item_type || corpo.item_type === alvo) ? corpo : null;
+  return item ? notasDoWhatsOn(item) : [];
+}
+
+function notasExternas(chave) {
+  const guardada = notasGuardadas(chave);
+  if (guardada) return Promise.resolve(guardada);
+  if (estado.notasPendentes.has(chave)) return estado.notasPendentes.get(chave);
+  const [tipo, tmdb] = chave.split(':');
+  const promessa = buscarNotasExternas(tipo, tmdb)
+    .then(notas => {
+      const registro = { em: Date.now(), notas };
+      const cache = lerCacheNotas();
+      cache[chave] = registro;
+      gravarCacheNotas(cache);
+      return registro;
+    })
+    .finally(() => estado.notasPendentes.delete(chave));
+  estado.notasPendentes.set(chave, promessa);
+  return promessa;
+}
+
+/* ----- Na ficha ----- */
+
+function quantidadeCompacta(n, um, varios) {
+  const v = Math.max(0, Math.round(Number(n) || 0));
+  return `${v >= 1000 ? formatoCompacto.format(v) : numero(v)} ${v === 1 ? um : varios}`;
+}
+
+function valorNotaExterna(n) {
+  if (n.escala === 100 && n.id !== 'mc-critica') return { html: `<b>${numero(Math.round(n.valor))}%</b>`, texto: `${numero(Math.round(n.valor))}%` };
+  const casas = n.escala === 100 ? 0 : 1;
+  const v = numero(n.escala === 100 ? Math.round(n.valor) : n.valor, casas);
+  return { html: `<b>${v}</b>/${n.escala}`, texto: `${v} de ${n.escala}` };
+}
+
+function linhaNotaExternaHTML(n) {
+  const fracao = Math.max(0.02, Math.min(1, n.valor / n.escala));
+  const votos = n.votos ? (n.quem === 'crítica' ? quantidadeCompacta(n.votos, 'crítica', 'críticas') : votosTexto(n.votos)) : '';
+  const detalhes = [n.quem, votos, n.top ? `nº ${n.top} do top 250` : '', n.selo].filter(Boolean).join(' · ');
+  const valor = valorNotaExterna(n);
+  const cor = n.id.startsWith('mc-') ? (fracao >= 0.61 ? '#00CE7A' : fracao >= 0.4 ? '#FFBD3F' : '#FF6874') : (CORES_NOTAS[n.id] || 'var(--estrela)');
+  const rotulo = `${n.nome}${n.quem ? `, ${n.quem}` : ''}: ${valor.texto}${votos ? `, ${votos}` : ''}`;
+  const miolo = `<span class="nota-externa-nome">${esc(n.nome)}${detalhes ? `<small>${esc(detalhes)}</small>` : ''}</span>
+    <span class="nota-externa-barra" aria-hidden="true"><i style="width:${(fracao * 100).toFixed(1)}%;--cor:${cor}"></i></span>
+    <span class="nota-externa-valor" aria-hidden="true">${valor.html}</span>`;
+  return n.url
+    ? `<li><a class="nota-externa" href="${esc(n.url)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(rotulo)}">${miolo}</a></li>`
+    : `<li class="nota-externa" role="img" aria-label="${esc(rotulo)}">${miolo}</li>`;
+}
+
+function notaTmdbComoExterna(base) {
+  if (!temNotaPublica(base)) return null;
+  return {
+    id: 'tmdb', nome: 'TMDB', valor: base.notaTMDB, escala: 10, votos: base.votosTMDB, quem: '',
+    url: `https://www.themoviedb.org/${base.tipo === 'serie' ? 'tv' : 'movie'}/${base.tmdb}`,
+  };
+}
+
+function linksDoTituloHTML(base) {
+  const links = [];
+  const abrir = (url, nome) => `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${nome}</a>`;
+  if (base.tmdb) links.push(abrir(`https://www.themoviedb.org/${base.tipo === 'serie' ? 'tv' : 'movie'}/${base.tmdb}`, 'TMDB'));
+  if (base.imdb) links.push(abrir(`https://www.imdb.com/title/${base.imdb}/`, 'IMDb'));
+  if (base.tmdb && base.tipo === 'filme') links.push(abrir(`https://letterboxd.com/tmdb/${base.tmdb}/`, 'Letterboxd'));
+  if (base.tmdb && base.tipo === 'serie') links.push(abrir(`https://www.serializd.com/show/${base.tmdb}`, 'Serializd'));
+  const busca = [base.titulo || base.original, base.ano, base.tipo === 'serie' ? 'série' : 'filme'].filter(Boolean).join(' ');
+  if (busca) links.push(abrir(`https://www.google.com/search?q=${encodeURIComponent(busca)}`, 'Google'));
+  return links.length ? `<p class="links-externos">${links.join('')}</p>` : '';
+}
+
+function conteudoOutrasNotasHTML(base, situacao, notas = []) {
+  const tmdb = notaTmdbComoExterna(base);
+  const lista = [tmdb, ...notas].filter(Boolean);
+  let estadoTexto = '';
+  if (situacao === 'carregando') estadoTexto = '<p class="ajuda estado-notas" data-estado-notas>Buscando as notas do IMDb, do Letterboxd e de outros sites…</p>';
+  else if (situacao === 'acordando') estadoTexto = '<p class="ajuda estado-notas" data-estado-notas>O serviço que reúne as notas estava dormindo e está acordando. Na primeira vez do dia, pode levar até um minuto.</p>';
+  else if (situacao === 'sem-internet') estadoTexto = '<p class="ajuda estado-notas">Sem internet agora. As notas dos outros sites aparecem quando a conexão voltar.</p>';
+  else if (situacao === 'limite') estadoTexto = '<p class="ajuda estado-notas">Muitas consultas de notas nesta hora. Tente de novo mais tarde.</p>';
+  else if (situacao === 'erro') estadoTexto = '<p class="ajuda estado-notas">Não deu para buscar as notas agora. <button type="button" class="link" data-acao="tentar-notas">Tentar de novo</button></p>';
+  else if (situacao === 'pronto' && !notas.length) estadoTexto = '<p class="ajuda estado-notas">Os outros sites ainda não têm nota para este título.</p>';
+  return `${lista.length ? `<ul class="notas-externas">${lista.map(linhaNotaExternaHTML).join('')}</ul>` : ''}${estadoTexto}`;
+}
+
+function outrasNotasHTML(base) {
+  const chave = chaveNotas(base);
+  if (!chave) return linksDoTituloHTML(base);
+  const guardada = notasGuardadas(chave);
+  const situacao = guardada ? 'pronto' : navigator.onLine ? 'carregando' : 'sem-internet';
+  return `<section class="ficha-bloco" data-outras-notas="${esc(chave)}">
+      <h3>Notas em outros sites</h3>
+      <div data-notas-conteudo>${conteudoOutrasNotasHTML(base, situacao, guardada ? guardada.notas : [])}</div>
+      <p class="ajuda nota-fonte">Notas do IMDb, Letterboxd, Rotten Tomatoes, Metacritic e Trakt reunidas pelo What's on?, um serviço gratuito. O Google e o Serializd não liberam as notas deles para outros apps; os links abaixo abrem o título lá.</p>
+      ${linksDoTituloHTML(base)}
+    </section>`;
+}
+
+async function carregarOutrasNotas(base) {
+  const chave = chaveNotas(base);
+  if (!chave || notasGuardadas(chave) || !navigator.onLine) return;
+  const alvo = () => {
+    const bloco = document.querySelector(`#modal [data-outras-notas="${CSS.escape(chave)}"]`);
+    return bloco && bloco.querySelector('[data-notas-conteudo]');
+  };
+  const mostrar = (situacao, notas) => {
+    const el = alvo();
+    if (el) el.innerHTML = conteudoOutrasNotasHTML(base, situacao, notas);
+  };
+  const acordando = setTimeout(() => {
+    const el = alvo();
+    if (el && el.querySelector('[data-estado-notas]')) mostrar('acordando');
+  }, 6000);
+  try {
+    const r = await notasExternas(chave);
+    mostrar('pronto', r.notas);
+  } catch (e) {
+    mostrar(e.tipo === 'limite' ? 'limite' : navigator.onLine ? 'erro' : 'sem-internet');
+  } finally {
+    clearTimeout(acordando);
+  }
+}
+
+
 /* ===== Ícones ===== */
 
 const ICONES = {
@@ -2419,6 +2868,7 @@ const ICONES = {
   engrenagem: '<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a7.7 7.7 0 0 0 0-3l1.8-1.4-1.8-3.1-2.2.8a7.6 7.6 0 0 0-2.6-1.5L14.2 3h-3.6l-.4 2.3a7.6 7.6 0 0 0-2.6 1.5l-2.2-.8-1.8 3.1 1.8 1.4a7.7 7.7 0 0 0 0 3l-1.8 1.4 1.8 3.1 2.2-.8a7.6 7.6 0 0 0 2.6 1.5l.4 2.3h3.6l.4-2.3a7.6 7.6 0 0 0 2.6-1.5l2.2.8 1.8-3.1z"/>',
   fechar: '<path d="M6 6l12 12M18 6 6 18"/>',
   voltar: '<path d="M15 5 8 12l7 7"/>',
+  seguir: '<path d="m9 5 7 7-7 7"/>',
   coracao: '<path d="M12 20.3s-7.6-4.6-9.3-9.4C1.5 7.4 4 4.4 7.3 4.4c2 0 3.6 1.1 4.7 2.8 1.1-1.7 2.7-2.8 4.7-2.8 3.3 0 5.8 3 4.6 6.5-1.7 4.8-9.3 9.4-9.3 9.4z"/>',
   revisto: '<path d="M4.5 12a7.5 7.5 0 0 1 12.9-5.2L19.5 9M19.5 4.5V9H15M19.5 12a7.5 7.5 0 0 1-12.9 5.2L4.5 15M4.5 19.5V15H9"/>',
   comentario: '<path d="M5 7h14M5 12h14M5 17h9"/>',
@@ -2506,7 +2956,7 @@ function linhaDiarioHTML(r, t) {
   const quando = r.data ? dataExtensa(r.data) : 'sem data';
   const onde = plataformaPorId(r.onde);
   const rotulo = `${nomeDe(t)}${sub ? `, ${sub}` : ''}, ${quando}${r.nota ? `, nota ${notaTexto(r.nota)}` : ''}${onde ? `, ${onde.nome}` : ''}`;
-  return `<li class="linha-diario" data-acao="abrir-titulo" data-id="${esc(t.id)}" data-registro="${esc(r.id)}" role="button" tabindex="0" aria-label="${esc(rotulo)}">
+  return `<li class="linha-diario" data-acao="editar-registro" data-id="${esc(r.id)}" role="button" tabindex="0" aria-label="${esc(rotulo)}">
     ${canhotoHTML(r)}
     ${posterHTML(t, { caminho: posterDoRegistro(r, t), tamanho: 'w92', dobro: 'w185' })}
     <div class="linha-texto">
@@ -2896,7 +3346,7 @@ function telaInicio() {
   const favoritos = dados.titulos.filter(t => t.favorito)
     .sort((a, b) => String(ultimaVez(b) || '').localeCompare(String(ultimaVez(a) || ''))).slice(0, 14);
   const doAno = registrosComTitulo().filter(x => x.r.data && x.r.data.startsWith(ano));
-  const filaRegistro = ({ r, t }) => `<button type="button" class="tile" data-acao="abrir-titulo" data-id="${esc(t.id)}" data-registro="${esc(r.id)}" aria-label="${esc(nomeDe(t))}, ${esc(dataExtensa(r.data))}">
+  const filaRegistro = ({ r, t }) => `<button type="button" class="tile" data-acao="editar-registro" data-id="${esc(r.id)}" aria-label="${esc(nomeDe(t))}, ${esc(dataExtensa(r.data))}">
       ${posterHTML(t, { caminho: posterDoRegistro(r, t) })}
       <span class="tile-linha">${estrelasHTML(r.nota, 11)}${coracaoMini(t, 12)}</span>
     </button>`;
@@ -3373,65 +3823,82 @@ function telaConfig() {
 }
 
 
-/* ===== Busca ===== */
+/* ===== Busca e vitrine =====
+   Sem nada digitado, a busca vira uma vitrine do que ver (no espírito do Google TV): destaques da
+   semana, o que está nos cinemas ou no ar, o que tem nos serviços que você usa, os gêneros de que
+   você mais gosta e os mais bem avaliados. Só aparecem títulos que você ainda não registrou.
+   Tocar num título abre a ficha; o registro sai de lá. */
 
 function nomeDaPrevia(p) {
   return dados.preferencias.nomes === 'original' && p.original ? p.original : p.titulo;
 }
 
-function titulosRecentes(limite) {
-  const vistos = new Set();
-  const lista = [];
-  for (const { r, t } of registrosComTitulo().sort((a, b) => compararRegistros(a.r, b.r))) {
-    if (vistos.has(t.id)) continue;
-    vistos.add(t.id);
-    lista.push(t);
-    if (lista.length >= limite) break;
-  }
-  return lista;
+function jaVisto(p) {
+  const t = tituloDoTmdb(p.tipo, p.tmdb);
+  return !!(t && registrosDe(t.id).length);
 }
 
-function abrirBusca({ modo = 'registrar', religar = null, termo } = {}) {
+function placeholderBusca() {
+  const b = estado.busca;
+  if (b.modo === 'religar') return 'Buscar o título certo';
+  return b.tipo === 'serie' ? 'Buscar série' : 'Buscar filme';
+}
+
+function abrirBusca({ modo = 'registrar', religar = null, termo, voltando = false } = {}) {
   const b = estado.busca;
   b.modo = modo;
   b.religar = religar;
-  if (modo === 'religar' && termo === undefined) {
+  if (modo === 'religar') {
     const t = tituloPorId(religar);
-    termo = t ? `${t.original || t.titulo}${t.ano ? ` ${t.ano}` : ''}` : '';
-    b.tipo = t ? t.tipo : '';
+    if (termo === undefined) termo = t ? `${t.original || t.titulo}${t.ano ? ` ${t.ano}` : ''}` : '';
+    b.tipo = t ? t.tipo : 'filme';
+  } else {
+    b.tipo = b.tipoRegistrar === 'serie' ? 'serie' : 'filme';
   }
   if (termo !== undefined) { b.termo = termo; b.resultados = null; b.erro = ''; }
+  if (!voltando && !b.termo.trim()) { b.genero = ''; b.grade = null; }
   estado.formulario = null;
   estado.fichaAberta = null;
-  const tipos = [['', 'Tudo'], ['filme', 'Filmes'], ['serie', 'Séries']];
+  estado.previaAberta = null;
+  estado.origemFicha = null;
+  const tipos = [['filme', 'Filmes'], ['serie', 'Séries']];
   abrirModal({
     classe: 'tela-cheia busca-modal',
     topo: `<div class="busca-cabecalho"><div class="busca-topo">
         <button type="button" class="botao-icone" data-acao="fechar-modal" aria-label="Fechar">${icone('voltar', 24)}</button>
-        <input type="search" data-busca-tmdb value="${esc(b.termo)}" placeholder="${modo === 'religar' ? 'Buscar o título certo' : 'Buscar filme ou série'}" aria-label="Buscar filme ou série" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <input type="search" data-busca-tmdb value="${esc(b.termo)}" placeholder="${placeholderBusca()}" aria-label="Buscar filme ou série" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false">
       </div>
-      <div class="busca-tipo"><div class="segmentado" role="group" aria-label="Tipo">${tipos.map(([v, r]) => `<button type="button" data-acao="tipo-busca" data-valor="${v}" aria-pressed="${b.tipo === v}">${r}</button>`).join('')}</div></div></div>`,
+      <div class="busca-tipo"><div class="segmentado" role="group" aria-label="Filmes ou séries">${tipos.map(([v, r]) => `<button type="button" data-acao="tipo-busca" data-valor="${v}" aria-pressed="${b.tipo === v}">${r}</button>`).join('')}</div></div></div>`,
     corpo: `<div data-busca-conteudo>${conteudoBusca()}</div>`,
   });
+  const corpo = document.querySelector('#modal .modal-corpo');
+  if (voltando && corpo) corpo.scrollTop = b.rolagem || 0;
   const campo = document.querySelector('[data-busca-tmdb]');
-  if (campo && chaveTMDB() && !b.termo.trim()) campo.focus({ preventScroll: true });
-  if (!b.termo.trim()) carregarVitrineNaBusca();
-  else if (!b.resultados) executarBusca();
+  // No celular, o teclado só abre quando a pessoa toca na busca: assim a vitrine aparece inteira.
+  const toque = navigator.maxTouchPoints > 0 || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  if (campo && chaveTMDB() && !voltando && (modo === 'religar' || !toque)) campo.focus({ preventScroll: true });
+  if (!b.termo.trim()) {
+    carregarExplorarNaBusca();
+    if (b.genero) carregarGradeGenero();
+  } else if (!b.resultados) {
+    executarBusca();
+  }
 }
 
 function botaoManualHTML() {
   if (estado.busca.modo === 'religar') return '';
-  return '<div class="acoes" style="margin-top:22px"><button type="button" class="botao pequeno" data-acao="registro-manual">Não achou? Cadastrar à mão</button></div>';
+  return '<div class="acoes" style="margin-top:26px"><button type="button" class="botao pequeno" data-acao="registro-manual">Não achou? Cadastrar à mão</button></div>';
 }
 
 function conteudoBusca() {
   const b = estado.busca;
   if (!chaveTMDB()) return cartaoChaveHTML({ contexto: 'busca' }) + botaoManualHTML();
-  if (!b.termo.trim()) return vitrineHTML() + botaoManualHTML();
+  if (!b.termo.trim()) return (b.modo === 'religar' ? '' : explorarHTML()) + botaoManualHTML();
   if (b.erro) return `<p class="estado-busca">${esc(b.erro)}</p>${botaoManualHTML()}`;
   if (!b.resultados) return b.carregando ? '<p class="estado-busca">Buscando…</p>' : '';
   if (!b.resultados.length) {
-    return `<p class="estado-busca">Nada encontrado para “${esc(b.termo.trim())}”. Tente o título original ou acrescente o ano, como em “Duna 2021”.</p>${botaoManualHTML()}`;
+    const outro = b.tipo === 'serie' ? 'Filmes' : 'Séries';
+    return `<p class="estado-busca">Nada encontrado para “${esc(b.termo.trim())}” em ${b.tipo === 'serie' ? 'séries' : 'filmes'}. Tente o título original, acrescente o ano (como em “Duna 2021”) ou procure em ${outro}.</p>${botaoManualHTML()}`;
   }
   return `<ul class="resultados">${b.resultados.map(resultadoHTML).join('')}</ul>${b.resultados.some(temNotaPublica) ? legendaNotaPublicaHTML() : ''}${botaoManualHTML()}`;
 }
@@ -3442,41 +3909,239 @@ function resultadoHTML(p, i) {
   const principal = nomeDaPrevia(p);
   const segundo = principal === p.titulo ? p.original : p.titulo;
   const mostrarSegundo = segundo && chaveTexto(segundo) !== chaveTexto(principal);
+  const detalhe = notaPublicaHTML(p) + (mostrarSegundo ? esc(segundo) : '');
   return `<li class="linha-resultado"><button type="button" class="resultado" data-acao="escolher-resultado" data-lista="resultados" data-indice="${i}">
     ${posterHTML({ ...p, id: `tmdb-${p.tipo}-${p.tmdb}` }, { tamanho: 'w92', dobro: 'w185' })}
     <span>
       <span class="resultado-titulo">${esc(principal)}${p.ano ? `<span class="ano">${p.ano}</span>` : ''}</span>
-      <span class="detalhe" style="display:block"><span class="tipo-selo">${p.tipo === 'serie' ? 'Série' : 'Filme'}</span>${notaPublicaHTML(p)}${mostrarSegundo ? esc(segundo) : ''}</span>
+      ${detalhe ? `<span class="detalhe" style="display:block">${detalhe}</span>` : ''}
     </span>
     ${vezes ? `<span class="visto-selo">${icone('check', 15, { traco: 2.4 })}${vezes > 1 ? `${vezes}×` : 'Visto'}</span>` : ''}
   </button>${estado.busca.modo === 'religar' ? '' : botaoQueroVerPrevia(p, 'resultados', i)}</li>`;
 }
 
-function vitrineHTML() {
-  const b = estado.busca;
-  if (b.modo === 'religar') return '';
-  const recentes = titulosRecentes(12);
-  const doDiario = recentes.length ? `<section class="bloco-busca"><h3>Do seu diário</h3><div class="fila">${recentes.map(t => `<button type="button" class="tile" data-acao="registrar-titulo" data-id="${esc(t.id)}" aria-label="Registrar ${esc(nomeDe(t))} de novo">${posterHTML(t)}<span class="tile-nome">${esc(nomeDe(t))}</span></button>`).join('')}</div></section>` : '';
-  const v = b.vitrine;
-  const fila = (lista, nome) => `<div class="fila">${lista.map((p, i) => `<div class="tile-vitrine"><button type="button" class="tile" data-acao="escolher-resultado" data-lista="${nome}" data-indice="${i}" aria-label="${esc(nomeDaPrevia(p))}${p.ano ? `, ${p.ano}` : ''}${temNotaPublica(p) ? `, ${notaPublicaRotulo(p)}` : ''}">${posterHTML({ ...p, id: `tmdb-${p.tipo}-${p.tmdb}` }, { extra: notaPublicaHTML(p, { sobrePoster: true }) })}<span class="tile-nome">${esc(nomeDaPrevia(p))}</span></button>${botaoQueroVerPrevia(p, nome, i, 'botao-quero mini')}</div>`).join('')}</div>`;
-  let blocos = '';
-  if (v) {
-    if (v.cartaz.length) blocos += `<section class="bloco-busca"><h3>Nos cinemas</h3>${fila(v.cartaz, 'cartaz')}</section>`;
-    if (v.alta.length) blocos += `<section class="bloco-busca"><h3>Em alta esta semana</h3>${fila(v.alta, 'alta')}</section>`;
-    if ([...v.cartaz, ...v.alta].some(temNotaPublica)) blocos += legendaNotaPublicaHTML();
-  } else if (b.erroVitrine) {
-    blocos = `<p class="estado-busca">${esc(b.erroVitrine)}</p>`;
-  } else if (b.carregandoVitrine) {
-    blocos = '<p class="estado-busca">Carregando o que está nos cinemas…</p>';
-  }
-  return doDiario + blocos;
+/* ----- Vitrine ----- */
+
+const ARTIGO_SERVICO = {
+  netflix: 'Na', hbomax: 'Na', crunchyroll: 'Na', mubi: 'Na', appletv: 'Na',
+  prime: 'No', disney: 'No', globoplay: 'No', paramount: 'No', mercadoplay: 'No', youtube: 'No',
+};
+
+function dataCurta(iso) {
+  if (!dataValida(iso)) return '';
+  const d = paraData(iso);
+  const ano = d.getFullYear() !== new Date().getFullYear() ? ` ${d.getFullYear()}` : '';
+  return `${d.getDate()} ${MESES[d.getMonth()]}${ano}`;
 }
+
+function tileVitrineHTML(p, lista, i, { linha = null } = {}) {
+  const nome = nomeDaPrevia(p);
+  const rotulo = `${nome}${p.ano ? `, ${p.ano}` : ''}${temNotaPublica(p) ? `, ${notaPublicaRotulo(p)}` : ''}`;
+  const extra = linha ? linha(p) : '';
+  return `<div class="tile-vitrine"><button type="button" class="tile" data-acao="escolher-resultado" data-lista="${lista}" data-indice="${i}" aria-label="${esc(rotulo)}">${posterHTML({ ...p, id: `tmdb-${p.tipo}-${p.tmdb}` }, { extra: notaPublicaHTML(p, { sobrePoster: true }) })}<span class="tile-nome">${esc(nome)}</span>${extra ? `<span class="tile-linha">${esc(extra)}</span>` : ''}</button>${botaoQueroVerPrevia(p, lista, i, 'botao-quero mini')}</div>`;
+}
+
+function destaquesHTML(lista) {
+  if (!lista.length) return '';
+  estado.busca.listas.destaques = lista;
+  return `<section class="destaques" aria-label="Destaques da semana"><div class="destaques-trilho">${lista.map((p, i) => {
+    const nome = nomeDaPrevia(p);
+    const generos = p.generos.slice(0, 2).map(g => GENERO_ROTULO[g]).join(', ');
+    const linha = [p.ano, generos].filter(Boolean).join(' · ');
+    const rotulo = `${nome}${p.ano ? `, ${p.ano}` : ''}${temNotaPublica(p) ? `, ${notaPublicaRotulo(p)}` : ''}`;
+    return `<div class="destaque">
+      <button type="button" class="destaque-botao" data-acao="escolher-resultado" data-lista="destaques" data-indice="${i}" aria-label="${esc(rotulo)}">
+        <img src="${esc(urlImagem(p.fundo, 'w780'))}" alt="" loading="${i ? 'lazy' : 'eager'}" decoding="async" referrerpolicy="no-referrer">
+        <span class="destaque-texto"><b>${esc(nome)}</b><small>${notaPublicaHTML(p)}${esc(linha)}</small></span>
+      </button>
+      ${botaoQueroVerPrevia(p, 'destaques', i, 'botao-quero mini')}
+    </div>`;
+  }).join('')}</div></section>`;
+}
+
+function chipsGenerosBuscaHTML() {
+  const b = estado.busca;
+  const lista = GENEROS_DESCOBRIR[b.tipo] || [];
+  return `<div class="chips-generos" role="group" aria-label="Gêneros">
+    <button type="button" class="chip" data-acao="genero-busca" data-valor="" aria-pressed="${!b.genero}">Para você</button>
+    ${lista.map(([id, rotulo]) => `<button type="button" class="chip" data-acao="genero-busca" data-valor="${id}" aria-pressed="${b.genero === id}">${esc(rotulo)}</button>`).join('')}
+  </div>`;
+}
+
+function esqueletoExplorarHTML() {
+  const fila = `<div class="esqueleto-titulo"></div><div class="fila">${'<div class="esqueleto-poster"></div>'.repeat(6)}</div>`;
+  return `<div class="esqueleto" aria-busy="true" aria-label="Carregando"><div class="esqueleto-destaque"></div>${fila}${fila}</div>`;
+}
+
+function esqueletoGradeHTML() {
+  return `<div class="grade grade-busca esqueleto" aria-busy="true" aria-label="Carregando">${'<div class="esqueleto-poster"></div>'.repeat(9)}</div>`;
+}
+
+function explorarHTML() {
+  const b = estado.busca;
+  const tipo = b.tipo;
+  const filme = tipo !== 'serie';
+  b.listas = {};
+  const chips = chipsGenerosBuscaHTML();
+  if (b.genero) return chips + gradeGeneroHTML();
+  const ex = b.explorar[tipo];
+  if (!ex) {
+    if (b.erroExplorar) {
+      return `${chips}<p class="estado-busca">${esc(b.erroExplorar)}</p><div class="acoes"><button type="button" class="botao pequeno" data-acao="recarregar-explorar">Tentar de novo</button></div>`;
+    }
+    return chips + esqueletoExplorarHTML();
+  }
+  const novos = (lista, limite = 15) => lista.filter(p => !jaVisto(p)).slice(0, limite);
+  const mostrados = [];
+  const fila = (nome, titulo, lista, { minimo = 1, linha = null } = {}) => {
+    if (lista.length < minimo) return '';
+    b.listas[nome] = lista;
+    mostrados.push(...lista);
+    return `<section class="bloco-busca"><h3>${esc(titulo)}</h3><div class="fila">${lista.map((p, i) => tileVitrineHTML(p, nome, i, { linha })).join('')}</div></section>`;
+  };
+  const alta = novos(ex.alta, 20);
+  const destaques = alta.filter(p => p.fundo).slice(0, 5);
+  mostrados.push(...destaques);
+  let html = chips + destaquesHTML(destaques);
+  html += fila('cartaz', filme ? 'Nos cinemas' : 'No ar esta semana', novos(ex.cartaz));
+  html += fila('alta', 'Em alta esta semana', alta.filter(p => !destaques.includes(p)));
+  ex.servicos.forEach((s, i) => {
+    html += fila(`servico${i}`, `${ARTIGO_SERVICO[s.plataforma.id] || 'Em'} ${s.plataforma.nome}`, novos(s.itens), { minimo: 3 });
+  });
+  ex.generos.forEach((g, i) => {
+    const entrada = generoDescobrir(tipo, g.genero);
+    if (entrada) html += fila(`genero${i}`, `Para quem gosta de ${entrada[1].toLowerCase()}`, novos(g.itens), { minimo: 3 });
+  });
+  html += fila('avaliados', filme ? 'Mais bem avaliados' : 'Mais bem avaliadas', novos(ex.avaliados));
+  if (filme) html += fila('breve', 'Em breve nos cinemas', novos(ex.breve), { linha: p => `Estreia ${dataCurta(p.estreia)}` });
+  if (!mostrados.length) html += '<p class="estado-busca">Você já registrou tudo o que está em alta agora. Busque pelo nome ou escolha um gênero.</p>';
+  else if (mostrados.some(temNotaPublica)) html += legendaNotaPublicaHTML();
+  return html;
+}
+
+function chaveGrade() {
+  const b = estado.busca;
+  return `${b.tipo}:${b.genero}:${b.ordemGenero}`;
+}
+
+function gradeGeneroHTML() {
+  const b = estado.busca;
+  const ordens = [['populares', 'Populares'], ['avaliados', 'Mais bem avaliados'], ['recentes', 'Lançamentos']];
+  const seg = `<div class="ordem-genero"><div class="segmentado" role="group" aria-label="Ordem">${ordens.map(([v, r]) => `<button type="button" data-acao="ordem-genero" data-valor="${v}" aria-pressed="${b.ordemGenero === v}">${r}</button>`).join('')}</div></div>`;
+  const g = b.grade;
+  if (!g || g.chave !== chaveGrade() || (!g.itens.length && g.carregando)) return seg + esqueletoGradeHTML();
+  if (!g.itens.length && g.erro) return `${seg}<p class="estado-busca">${esc(g.erro)}</p>`;
+  const lista = g.itens.filter(p => !jaVisto(p));
+  b.listas.grade = lista;
+  if (!lista.length) return `${seg}<p class="estado-busca">Nada por aqui que você ainda não tenha visto.</p>`;
+  const mais = g.pagina < g.paginas
+    ? `<div class="acoes" style="justify-content:center;margin-top:18px"><button type="button" class="botao" data-acao="mais-genero"${g.carregando ? ' disabled' : ''}>${g.carregando ? 'Carregando…' : 'Mostrar mais'}</button></div>`
+    : '';
+  return `${seg}<div class="grade grade-busca">${lista.map((p, i) => tileVitrineHTML(p, 'grade', i)).join('')}</div>${mais}${g.erro ? `<p class="estado-busca">${esc(g.erro)}</p>` : ''}${lista.some(temNotaPublica) ? legendaNotaPublicaHTML() : ''}`;
+}
+
+async function carregarExplorarNaBusca() {
+  const b = estado.busca;
+  if (!chaveTMDB() || b.modo === 'religar') return;
+  const tipo = b.tipo;
+  if (explorarValido(tipo)) return;
+  if (!b.carregandoExplorar || typeof b.carregandoExplorar !== 'object') b.carregandoExplorar = {};
+  if (b.carregandoExplorar[tipo]) return;
+  b.carregandoExplorar[tipo] = true;
+  b.erroExplorar = '';
+  try {
+    await carregarExplorar(tipo);
+  } catch (e) {
+    if (b.tipo === tipo) b.erroExplorar = explicarErroTMDB(e);
+  }
+  b.carregandoExplorar[tipo] = false;
+  if (b.tipo === tipo && !b.termo.trim() && !b.genero && b.modo !== 'religar') atualizarConteudoBusca();
+}
+
+async function carregarGradeGenero({ mais = false } = {}) {
+  const b = estado.busca;
+  const chave = chaveGrade();
+  let g = b.grade;
+  if (!mais && g && g.chave === chave && (g.itens.length || g.carregando)) return;
+  if (!g || g.chave !== chave) g = b.grade = { chave, itens: [], pagina: 0, paginas: 1, carregando: false, erro: '' };
+  if (g.carregando || (mais && g.pagina >= g.paginas)) return;
+  g.carregando = true;
+  if (mais) atualizarConteudoBusca();
+  const [tipo, genero, ordem] = chave.split(':');
+  try {
+    // Busca até três páginas quando quase tudo da primeira já foi visto.
+    for (let rodada = 0; rodada < 3; rodada++) {
+      const r = await descobrir(tipo, { genero, ordem, pagina: g.pagina + 1 });
+      if (b.grade !== g) return;
+      const vistos = new Set(g.itens.map(p => p.tmdb));
+      g.itens.push(...r.itens.filter(p => !vistos.has(p.tmdb)));
+      g.pagina += 1;
+      g.paginas = r.paginas;
+      g.erro = '';
+      if (g.itens.filter(p => !jaVisto(p)).length >= (mais ? 0 : 12) || g.pagina >= g.paginas || mais) break;
+    }
+  } catch (e) {
+    if (b.grade !== g) return;
+    g.erro = explicarErroTMDB(e);
+  }
+  g.carregando = false;
+  if (!b.termo.trim() && b.genero === genero && b.tipo === tipo) atualizarConteudoBusca();
+}
+
+function trocarTipoBusca(tipo) {
+  const b = estado.busca;
+  if (b.tipo === tipo) return;
+  b.tipo = tipo;
+  if (b.modo !== 'religar') b.tipoRegistrar = tipo;
+  const equivalente = b.genero ? generoDescobrir(tipo, b.genero) : null;
+  b.genero = equivalente ? equivalente[0] : '';
+  b.grade = null;
+  b.resultados = null;
+  document.querySelectorAll('[data-acao="tipo-busca"]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.valor === tipo)));
+  const campo = document.querySelector('[data-busca-tmdb]');
+  if (campo) campo.placeholder = placeholderBusca();
+  const corpo = document.querySelector('#modal .modal-corpo');
+  if (corpo) corpo.scrollTop = 0;
+  if (b.termo.trim()) {
+    executarBusca();
+    return;
+  }
+  atualizarConteudoBusca();
+  if (b.genero) carregarGradeGenero();
+  else carregarExplorarNaBusca();
+}
+
+function escolherGeneroBusca(genero) {
+  const b = estado.busca;
+  if (b.genero === genero) return;
+  b.genero = genero;
+  b.grade = null;
+  atualizarConteudoBusca();
+  const corpo = document.querySelector('#modal .modal-corpo');
+  if (corpo) corpo.scrollTop = 0;
+  const chip = document.querySelector(`#modal [data-acao="genero-busca"][data-valor="${CSS.escape(genero)}"]`);
+  if (chip) chip.scrollIntoView({ block: 'nearest', inline: 'center' });
+  if (genero) carregarGradeGenero();
+  else carregarExplorarNaBusca();
+}
+
+function trocarOrdemGenero(ordem) {
+  const b = estado.busca;
+  if (b.ordemGenero === ordem) return;
+  b.ordemGenero = ordem;
+  b.grade = null;
+  atualizarConteudoBusca();
+  carregarGradeGenero();
+}
+
+/* ----- Quero ver a partir da busca ----- */
 
 function botaoQueroVerPrevia(p, lista, indice, classe = 'botao-quero') {
   const t = tituloDoTmdb(p.tipo, p.tmdb);
   const ligado = !!(t && t.querVer);
   const rotulo = ligado ? 'Tirar do Quero ver' : 'Quero ver';
-  return `<button type="button" class="${classe}" data-acao="quero-ver-previa" data-lista="${lista}" data-indice="${indice}" aria-pressed="${ligado}" aria-label="${rotulo}: ${esc(nomeDaPrevia(p))}" title="${rotulo}">${icone('querover', classe.includes('mini') ? 18 : 21)}</button>`;
+  const tamanho = classe.includes('mini') ? 18 : 21;
+  return `<button type="button" class="${classe}" data-acao="quero-ver-previa" data-lista="${lista}" data-indice="${indice}" aria-pressed="${ligado}" aria-label="${rotulo}: ${esc(nomeDaPrevia(p))}" title="${rotulo}">${icone('querover', tamanho)}</button>`;
 }
 
 function marcarBotoesQueroVer(tipo, tmdb, ligado) {
@@ -3499,6 +4164,11 @@ function alternarQueroVerPrevia(lista, indice) {
   alterar(() => {
     if (!t) {
       t = normalizarTitulo({ ...p, id: novoId('t'), criadoEm: new Date().toISOString() });
+      if (p.completa) {
+        t.tmdbEm = hojeISO();
+        t.disponivel = disponibilidadeDe(p);
+        t.disponivelEm = hojeISO();
+      }
       dados.titulos.push(t);
     }
     t.querVer = ligar;
@@ -3526,25 +4196,11 @@ function alternarQueroVer(id, botao) {
   if (ligar) setTimeout(atualizarDisponibilidade, 300);
 }
 
+/* ----- Busca digitada ----- */
+
 function atualizarConteudoBusca() {
   const alvo = document.querySelector('#modal [data-busca-conteudo]');
   if (alvo) alvo.innerHTML = conteudoBusca();
-}
-
-async function carregarVitrineNaBusca() {
-  const b = estado.busca;
-  if (!chaveTMDB() || b.modo === 'religar') return;
-  if (b.vitrine && Date.now() - b.vitrine.em < 3600000) return;
-  b.carregandoVitrine = true;
-  b.erroVitrine = '';
-  atualizarConteudoBusca();
-  try {
-    await carregarVitrine();
-  } catch (e) {
-    b.erroVitrine = explicarErroTMDB(e);
-  }
-  b.carregandoVitrine = false;
-  if (!b.termo.trim()) atualizarConteudoBusca();
 }
 
 async function executarBusca() {
@@ -3555,7 +4211,8 @@ async function executarBusca() {
     b.resultados = null;
     b.erro = '';
     atualizarConteudoBusca();
-    carregarVitrineNaBusca();
+    carregarExplorarNaBusca();
+    if (b.genero) carregarGradeGenero();
     return;
   }
   b.carregando = true;
@@ -3576,17 +4233,24 @@ async function executarBusca() {
 
 function previaDaLista(lista, indice) {
   const b = estado.busca;
-  const fonte = lista === 'cartaz' ? (b.vitrine || {}).cartaz : lista === 'alta' ? (b.vitrine || {}).alta : b.resultados;
-  return fonte ? fonte[indice] : null;
+  if (lista === 'ficha') return estado.previaAberta ? (estado.previaAberta.meta || estado.previaAberta.previa) : null;
+  if (lista === 'resultados') return b.resultados ? b.resultados[indice] || null : null;
+  const fonte = b.listas[lista];
+  return fonte ? fonte[indice] || null : null;
 }
 
 function escolherResultado(lista, indice) {
   const previa = previaDaLista(lista, indice);
   if (!previa) return;
-  if (estado.busca.modo === 'religar') { religarTitulo(estado.busca.religar, previa); return; }
+  const b = estado.busca;
+  if (b.modo === 'religar') { religarTitulo(b.religar, previa); return; }
+  const corpo = document.querySelector('#modal .modal-corpo');
+  b.rolagem = corpo ? corpo.scrollTop : 0;
   const existente = tituloDoTmdb(previa.tipo, previa.tmdb);
-  abrirFormularioRegistro({ previa, tituloId: existente ? existente.id : null, emCartaz: lista === 'cartaz', veioDaBusca: true });
+  if (existente) abrirFicha(existente.id, { origem: 'busca' });
+  else abrirFichaPrevia(previa, { emCartaz: lista === 'cartaz' });
 }
+
 
 /* ===== Formulário de registro ===== */
 
@@ -3629,6 +4293,46 @@ function chipsOndeHTML(selecionado, disponiveis = new Set()) {
   return `<div class="chips pequenos" role="radiogroup" aria-label="Onde assistiu">${dados.plataformas.map(p => `<label class="chip" style="--cor:${corSegura(p.cor)}"><input type="radio" name="onde" value="${esc(p.id)}"${p.id === selecionado ? ' checked' : ''}><span class="ponto"></span>${esc(p.nome)}${disponiveis.has(p.id) ? '<span class="disponivel" title="Disponível agora"></span>' : ''}</label>`).join('')}</div>`;
 }
 
+function resumoOndeHTML(id, sugerido = false) {
+  const p = plataformaPorId(id);
+  if (!p) return '<span class="resumo-vazio">Não informado</span>';
+  return `<span class="ponto" style="--cor:${corSegura(p.cor)}"></span>${esc(p.nome)}${sugerido ? '<small class="sugestao">sugestão</small>' : ''}`;
+}
+
+function atualizarResumoOnde(form) {
+  const f = estado.formulario;
+  const alvo = form && form.querySelector('[data-resumo-onde]');
+  if (!alvo) return;
+  const id = (form.querySelector('[name="onde"]:checked') || {}).value || '';
+  alvo.innerHTML = resumoOndeHTML(id, !!(f && f.ondeSugerido && !f.ondeTocado));
+}
+
+function quandoRelativo(iso) {
+  if (!dataValida(iso)) return { texto: 'escolha a data', alerta: true };
+  const dias = diasEntre(iso, hojeISO());
+  if (dias < 0) return { texto: 'data no futuro', alerta: true };
+  if (dias === 0) return { texto: 'hoje' };
+  if (dias === 1) return { texto: 'ontem' };
+  if (dias < 7) return { texto: `${DIAS_SEMANA_LONGOS[paraData(iso).getDay()]}, há ${dias} dias` };
+  if (dias < 60) return { texto: `há ${dias} dias` };
+  return { texto: '' };
+}
+
+// A data do registro mora num campo só: o calendário do próprio aparelho, que já abre em hoje.
+function atualizarQuando(form) {
+  const campo = form && form.querySelector('[name="data"]');
+  const sem = form && form.querySelector('[name="sem-data"]');
+  if (!campo || !sem) return;
+  campo.disabled = sem.checked;
+  const erro = form.querySelector('[data-erro-form]');
+  if (erro && /data/i.test(erro.textContent)) erro.textContent = '';
+  const rel = form.querySelector('[data-quando-relativo]');
+  if (!rel) return;
+  const r = sem.checked ? { texto: '' } : quandoRelativo(campo.value);
+  rel.textContent = r.texto;
+  rel.classList.toggle('alerta', !!r.alerta);
+}
+
 function opcoesTemporadasHTML(base, selecionada) {
   const reais = temporadasReais(base);
   const lista = reais.length
@@ -3654,23 +4358,23 @@ function serieBase(f) {
   };
 }
 
-function abrirFormularioRegistro({ previa = null, tituloId = null, registroId = null, emCartaz = false, veioDaBusca = false, temporada, manual = false, voltarFicha = null } = {}) {
+function abrirFormularioRegistro({ previa = null, tituloId = null, registroId = null, emCartaz = false, veioDaBusca = false, temporada, manual = false, voltarFicha = null, voltarPrevia = false } = {}) {
   const t = tituloId ? tituloPorId(tituloId) : null;
   const r = registroId ? registroPorId(registroId) : null;
   const base = t || previa || { tipo: 'filme', titulo: '', ano: null, generos: [], direcao: [] };
   const tipo = base.tipo;
   const f = estado.formulario = {
     tipo: 'registro', tituloId: t ? t.id : null, registroId: r ? r.id : null,
-    meta: previa && !t ? { ...previa } : null, emCartaz, veioDaBusca, manual, voltarFicha,
+    meta: previa && !t ? { ...previa } : null, emCartaz, veioDaBusca, manual, voltarFicha, voltarPrevia,
     tmdb: (t && t.tmdb) || (previa && previa.tmdb) || null, tipoTitulo: tipo,
-    ondeTocado: !!r, generosTocados: false, situacaoTocada: false, temporadaTocada: temporada !== undefined || !!r, revistoTocado: !!r,
+    ondeTocado: !!r, ondeSugerido: false, generosTocados: false, situacaoTocada: false, temporadaTocada: temporada !== undefined || !!r, revistoTocado: !!r,
   };
   estado.fichaAberta = null;
   const hoje = hojeISO();
-  const ontem = ontemISO();
-  const data = r ? r.data : hoje;
-  const quando = !data ? 'sem' : data === hoje ? 'hoje' : data === ontem ? 'ontem' : 'outra';
+  const semData = !!(r && !r.data);
+  const dataInicial = r && r.data ? r.data : hoje;
   const onde = r ? r.onde : sugestaoDeOnde(f.meta, { emCartaz });
+  f.ondeSugerido = !r && !!onde;
   const generos = [...(base.generos || [])];
   const temporadaInicial = r ? r.temporada : (temporada !== undefined ? temporada : (t ? proximaTemporada(t) : 1));
   const revisto = r ? r.revisto : !!(t && (tipo === 'filme' ? registrosDe(t.id).length : temporadasVistas(t).has(temporadaInicial)));
@@ -3678,9 +4382,11 @@ function abrirFormularioRegistro({ previa = null, tituloId = null, registroId = 
   const favorito = !!(t && t.favorito);
   const nota = r ? r.nota : null;
   const tituloJanela = r ? 'Editar registro' : manual ? 'Cadastrar à mão' : 'Registrar';
-  const voltar = veioDaBusca || manual
-    ? `<button type="button" class="voltar" data-acao="voltar-busca">${icone('voltar', 18, { traco: 2.2 })}Busca</button>`
-    : voltarFicha ? `<button type="button" class="voltar" data-acao="abrir-titulo" data-id="${esc(voltarFicha)}">${icone('voltar', 18, { traco: 2.2 })}Voltar</button>` : '';
+  const seta = icone('voltar', 18, { traco: 2.2 });
+  const voltar = voltarFicha
+    ? `<button type="button" class="voltar" data-acao="abrir-titulo" data-id="${esc(voltarFicha)}">${seta}Voltar</button>`
+    : voltarPrevia ? `<button type="button" class="voltar" data-acao="voltar-previa">${seta}Voltar</button>`
+      : veioDaBusca || manual ? `<button type="button" class="voltar" data-acao="voltar-busca">${seta}Busca</button>` : '';
   const topo = `<div class="modal-cabecalho">${voltar}<h2 class="modal-titulo" style="${voltar ? 'font-size:22px;margin-left:4px' : ''}">${tituloJanela}</h2><button type="button" class="botao-icone" data-acao="fechar-modal" aria-label="Fechar">${icone('fechar')}</button></div>`;
 
   const cabecalho = manual
@@ -3689,10 +4395,14 @@ function abrirFormularioRegistro({ previa = null, tituloId = null, registroId = 
         <label class="campo c2"><span>Ano</span><input type="number" name="m-ano" min="1870" max="2100" inputmode="numeric"></label>
         <div class="campo c4"><span>Tipo</span><div class="chips pequenos" role="radiogroup" aria-label="Tipo"><label class="chip"><input type="radio" name="m-tipo" value="filme" checked>Filme</label><label class="chip"><input type="radio" name="m-tipo" value="serie">Série</label></div></div>
       </div>`
-    : `<div class="registro-topo">
-        ${posterHTML(base, { caminho: r ? posterDoRegistro(r, base) : base.poster, tamanho: 'w154', dobro: 'w342' })}
-        <div><h2 class="registro-titulo">${esc(nomeDe(base))}</h2><p class="registro-meta" data-registro-meta>${esc(metaLinha(base))}</p></div>
-      </div>`;
+    : `<button type="button" class="registro-topo" data-acao="ver-ficha-form">
+        ${posterHTML(t || { ...base, id: `tmdb-${base.tipo}-${base.tmdb}` }, { caminho: r ? posterDoRegistro(r, base) : base.poster, tamanho: 'w154', dobro: 'w342' })}
+        <span class="registro-topo-texto">
+          <span class="registro-titulo">${esc(nomeDe(base))}</span>
+          <span class="registro-meta" data-registro-meta>${esc(metaLinha(base))}</span>
+          <span class="registro-ver-ficha">Ver ficha${icone('seguir', 15, { traco: 2.2 })}</span>
+        </span>
+      </button>`;
 
   const blocoSerie = `<fieldset class="bloco-form" data-bloco-serie${tipo === 'serie' ? '' : ' hidden'}><legend>O que você viu</legend>
       <div class="linha-dupla">
@@ -3701,11 +4411,15 @@ function abrirFormularioRegistro({ previa = null, tituloId = null, registroId = 
       </div>
     </fieldset>`;
 
+  const relativo = semData ? { texto: '' } : quandoRelativo(dataInicial);
   const corpo = `${cabecalho}
     ${blocoSerie}
     <fieldset class="bloco-form"><legend data-legenda-quando>${tipo === 'serie' ? 'Quando você terminou' : 'Quando você assistiu'}</legend>
-      <div class="chips pequenos" role="radiogroup" aria-label="Quando">${[['hoje', 'Hoje'], ['ontem', 'Ontem'], ['outra', 'Outro dia'], ['sem', 'Não lembro']].map(([v, rotulo]) => `<label class="chip"><input type="radio" name="quando" value="${v}"${quando === v ? ' checked' : ''}>${rotulo}</label>`).join('')}</div>
-      <label class="campo campo-data" data-campo-data${quando === 'outra' ? '' : ' hidden'}><span>Data</span><input type="date" name="data" value="${esc(quando === 'outra' ? data : '')}" max="${hoje}"></label>
+      <div class="linha-quando">
+        <input type="date" name="data" value="${esc(dataInicial)}" max="${hoje}" aria-label="Data"${semData ? ' disabled' : ''}>
+        <label class="chip chip-sem-data"><input type="checkbox" name="sem-data"${semData ? ' checked' : ''}>Sem data</label>
+      </div>
+      <p class="quando-relativo${relativo.alerta ? ' alerta' : ''}" data-quando-relativo aria-live="polite">${esc(relativo.texto)}</p>
     </fieldset>
     <fieldset class="bloco-form"><legend>Nota</legend>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
@@ -3714,16 +4428,17 @@ function abrirFormularioRegistro({ previa = null, tituloId = null, registroId = 
         <button type="button" class="botao-coracao" data-acao="favorito-form" aria-pressed="${favorito}" aria-label="Favorito" title="Favorito">${icone('coracao', 22)}</button>
       </div>
     </fieldset>
-    <fieldset class="bloco-form"><legend>Onde assistiu</legend>
+    <details class="bloco-form recolhivel" data-onde>
+      <summary><span class="legenda">Onde assistiu</span><span class="resumo-escolha" data-resumo-onde>${resumoOndeHTML(onde, f.ondeSugerido)}</span><span class="editar">Editar</span></summary>
       <div data-chips-onde>${chipsOndeHTML(onde, plataformasDisponiveis(f.meta))}</div>
       <p class="aviso-disponivel" data-disponivel>${esc(textoDisponibilidade(f.meta))}</p>
-    </fieldset>
-    <label class="opcao-check"><input type="checkbox" name="revisto"${revisto ? ' checked' : ''}> Já tinha visto antes (revisão)</label>
-    <details class="bloco-form generos-form"${manual || !generos.length ? ' open' : ''}>
-      <summary><span class="legenda">Gêneros</span><span data-resumo-generos>${esc(resumoGeneros(generos))}</span><span class="editar">Editar</span></summary>
+    </details>
+    <details class="bloco-form recolhivel" data-generos${manual || !generos.length ? ' open' : ''}>
+      <summary><span class="legenda">Gêneros</span><span class="resumo-escolha" data-resumo-generos>${esc(resumoGeneros(generos))}</span><span class="editar">Editar</span></summary>
       <div class="chips pequenos" data-chips-generos>${GENEROS.map(([id, nome]) => `<label class="chip"><input type="checkbox" name="genero" value="${id}"${generos.includes(id) ? ' checked' : ''}>${nome}</label>`).join('')}</div>
     </details>
     <label class="bloco-form campo"><span class="legenda">Comentário</span><textarea name="comentario" rows="3" placeholder="O que achou? Opcional.">${esc(r ? r.comentario : '')}</textarea></label>
+    <label class="opcao-discreta"><input type="checkbox" name="revisto"${revisto ? ' checked' : ''}>Revisão: já tinha visto antes</label>
     <p class="mensagem-erro" data-erro-form aria-live="assertive"></p>`;
 
   const rodape = r
@@ -3756,14 +4471,15 @@ async function carregarDetalhesDoFormulario(f) {
     if (!f.ondeTocado && !f.registroId) {
       sugerida = sugestaoDeOnde(meta, { emCartaz: f.emCartaz });
       if (sugerida) selecionado = sugerida;
+      f.ondeSugerido = !!selecionado;
     }
     alvoOnde.innerHTML = chipsOndeHTML(selecionado, plataformasDisponiveis(meta));
+    atualizarResumoOnde(form);
   }
   const aviso = form.querySelector('[data-disponivel]');
   if (aviso) {
     const texto = textoDisponibilidade(meta);
-    const p = sugerida ? plataformaPorId(sugerida) : null;
-    aviso.textContent = p && sugerida !== 'cinema' && texto ? `${texto} ${p.nome} ficou marcado; troque se viu em outro lugar.` : p && sugerida === 'cinema' ? `Estreou nos cinemas há pouco, por isso Cinema ficou marcado.${texto ? ` ${texto}` : ''}` : texto;
+    aviso.textContent = sugerida === 'cinema' ? `Estreou nos cinemas há pouco.${texto ? ` ${texto}` : ''}` : texto;
   }
   if (!f.generosTocados && !(t && t.generosManual) && meta.generos.length) {
     form.querySelectorAll('[name="genero"]').forEach(c => { c.checked = meta.generos.includes(c.value); });
@@ -3801,15 +4517,13 @@ function atualizarSituacaoSugerida(form) {
 function lerFormularioRegistro(form) {
   const f = estado.formulario;
   const valor = nome => ((form.querySelector(`[name="${nome}"]`) || {}).value || '').trim();
-  const quando = (form.querySelector('[name="quando"]:checked') || {}).value || 'hoje';
+  const semData = !!(form.querySelector('[name="sem-data"]') || {}).checked;
   let data = null;
-  if (quando === 'hoje') data = hojeISO();
-  else if (quando === 'ontem') data = ontemISO();
-  else if (quando === 'outra') {
+  if (!semData) {
     data = valor('data');
-    if (!dataValida(data)) return { erro: 'Escolha a data em que você assistiu.', campo: 'data' };
+    if (!dataValida(data)) return { erro: 'Escolha a data em que você assistiu ou marque Sem data.', campo: 'data' };
+    if (data > hojeISO()) return { erro: 'A data não pode ser depois de hoje.', campo: 'data' };
   }
-  if (data && data > hojeISO()) return { erro: 'A data não pode ser depois de hoje.', campo: 'data' };
   let tipo = f.tipoTitulo;
   let manual = null;
   if (f.manual) {
@@ -3900,7 +4614,7 @@ function salvarRegistro(form, { soAssistindo = false } = {}) {
   });
   const nome = nomeDe(t);
   const p = plataformaPorId(v.onde);
-  if (f.voltarFicha || f.registroId) abrirFicha(t.id, { destaque: f.registroId || '' });
+  if (f.voltarFicha) abrirFicha(t.id, { destaque: f.registroId || (registroNovo && registroNovo.id) || '' });
   else fecharModal();
   const avisoLista = saiuDaLista ? ' Saiu do Quero ver.' : '';
   if (soAssistindo) {
@@ -3932,6 +4646,7 @@ async function excluirRegistro(id) {
   const r = registroPorId(id);
   if (!r) return;
   const t = tituloPorId(r.titulo);
+  const voltarFicha = !!(estado.formulario && estado.formulario.voltarFicha);
   const ok = await confirmar({
     titulo: 'Excluir registro',
     texto: `O registro de ${nomeDe(t)}${r.data ? ` em ${dataBR(r.data)}` : ''} sai do diário.`,
@@ -3948,30 +4663,76 @@ async function excluirRegistro(id) {
       saiuTitulo = true;
     }
   }, { mensagem: 'Registro excluído.' });
-  if (saiuTitulo) fecharModal();
+  if (saiuTitulo || !voltarFicha) fecharModal();
   else abrirFicha(t.id);
 }
 
 /* ===== Ficha do título ===== */
 
-function abrirFicha(id, { destaque = '' } = {}) {
+function partesDaFicha(base) {
+  const partes = [];
+  if (base.ano) partes.push(base.tipo === 'serie' && base.fim && base.fim !== base.ano ? `${base.ano}–${base.fim}` : String(base.ano));
+  if (base.tipo === 'filme' && base.duracao) partes.push(duracaoTexto(base.duracao));
+  if (base.tipo === 'serie') {
+    const n = temporadasReais(base).length;
+    if (n) partes.push(plural(n, 'temporada', 'temporadas'));
+    if (base.duracao) partes.push(`episódios de ${duracaoTexto(base.duracao)}`);
+  }
+  partes.push(base.tipo === 'serie' ? 'Série' : 'Filme');
+  return partes;
+}
+
+function topoDaFichaHTML() {
+  const voltar = estado.origemFicha === 'busca'
+    ? `<button type="button" class="voltar sobre-fundo" data-acao="voltar-busca">${icone('voltar', 18, { traco: 2.2 })}Busca</button>`
+    : '';
+  return `<div class="modal-cabecalho">${voltar}<button type="button" class="botao-icone" data-acao="fechar-modal" aria-label="Fechar">${icone('fechar')}</button></div>`;
+}
+
+function cabecalhoDaFichaHTML(base, posterBase) {
+  const fundo = urlImagem(base.fundo, 'w780');
+  const outro = outroNome(base);
+  const credito = base.direcao && base.direcao.length ? `${base.tipo === 'serie' ? 'Criação de' : 'Direção de'} ${juntarNomes(base.direcao)}` : '';
+  return `<div class="ficha-fundo${fundo ? '' : ' sem-fundo'}"${fundo ? ` style="--fundo:url('${esc(fundo)}')"` : ''}></div>
+      <div class="ficha-miolo">
+        <div class="ficha-cabecalho">
+          <div class="ficha-poster">${posterHTML(posterBase || base, { tamanho: 'w342', dobro: 'w500' })}</div>
+          <div>
+            <h2 class="ficha-titulo">${esc(nomeDe(base))}</h2>
+            ${outro ? `<p class="ficha-original">${esc(outro)}</p>` : ''}
+            <p class="ficha-meta">${partesDaFicha(base).map(p => `<span>${esc(p)}</span>`).join('')}</p>
+            <p class="ficha-publico" data-nota-publica${temNotaPublica(base) ? '' : ' hidden'}>${notaPublicaFichaHTML(base)}</p>
+          </div>
+        </div>
+        ${credito ? `<p class="detalhe" style="margin-top:14px">${esc(credito)}</p>` : ''}`;
+}
+
+function sinopseEElencoHTML(base) {
+  const sinopse = base.sinopse || '';
+  const elenco = base.elenco || [];
+  return `${sinopse ? `<section class="ficha-bloco"><h3>Sinopse</h3><p class="sinopse${sinopse.length > 280 ? ' cortada' : ''}" data-sinopse>${esc(sinopse)}</p>${sinopse.length > 280 ? '<button type="button" class="link" data-acao="mostrar-sinopse" style="margin-top:6px">Ler tudo</button>' : ''}</section>` : ''}
+        ${elenco.length ? `<section class="ficha-bloco"><h3>Elenco</h3><p class="detalhe">${esc(juntarNomes(elenco))}</p></section>` : ''}`;
+}
+
+function provedoresHTML(prov) {
+  if (!prov) return '';
+  const linha = (lista, rotulo) => (lista.length ? `<p class="rotulo" style="margin:4px 0 8px">${rotulo}</p><div class="provedores">${lista.map(p => `<span class="provedor">${p.logo ? `<img src="${esc(TMDB_IMG + 'w92' + p.logo)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}${esc(p.nome)}</span>`).join('')}</div>` : '');
+  return linha(prov.assinatura, 'Incluído na assinatura ou grátis') + (prov.aluguel.length ? `<div style="margin-top:12px">${linha(prov.aluguel.slice(0, 6), 'Para alugar ou comprar')}</div>` : '');
+}
+
+function blocoOndeAssistirHTML(prov) {
+  const html = provedoresHTML(prov);
+  return `<section class="ficha-bloco" data-onde-assistir${html ? '' : ' hidden'}><h3>Onde assistir no Brasil</h3><div data-provedores>${html}</div><p class="ajuda" style="margin-top:10px">Dados da JustWatch, via TMDB.</p></section>`;
+}
+
+function abrirFicha(id, { destaque = '', origem } = {}) {
   const t = tituloPorId(id);
   if (!t) { fecharModal(); return; }
+  if (origem !== undefined) estado.origemFicha = origem;
   estado.formulario = null;
+  estado.previaAberta = null;
   estado.fichaAberta = id;
   const regs = registrosDe(t.id);
-  const fundo = urlImagem(t.fundo, 'w780');
-  const outro = outroNome(t);
-  const partes = [];
-  if (t.ano) partes.push(t.tipo === 'serie' && t.fim && t.fim !== t.ano ? `${t.ano}–${t.fim}` : String(t.ano));
-  if (t.tipo === 'filme' && t.duracao) partes.push(duracaoTexto(t.duracao));
-  if (t.tipo === 'serie') {
-    const n = temporadasReais(t).length;
-    if (n) partes.push(plural(n, 'temporada', 'temporadas'));
-    if (t.duracao) partes.push(`episódios de ${duracaoTexto(t.duracao)}`);
-  }
-  partes.push(t.tipo === 'serie' ? 'Série' : 'Filme');
-  const credito = t.direcao.length ? `${t.tipo === 'serie' ? 'Criação de' : 'Direção de'} ${juntarNomes(t.direcao)}` : '';
   const vezes = regs.length;
   const resumo = vezes ? (t.tipo === 'serie' ? plural(vezes, 'registro', 'registros') : vezes === 1 ? 'Visto uma vez' : `Visto ${vezes} vezes`)
     : t.querVer && t.querVerEm ? `No Quero ver desde ${dataBR(t.querVerEm)}` : '';
@@ -4009,26 +4770,10 @@ function abrirFicha(id, { destaque = '' } = {}) {
     }).join('')}</ul>`
     : `<p class="vazio">${t.tipo === 'serie' ? 'Nenhuma temporada registrada ainda.' : 'Nenhum registro.'}</p>`;
 
-  const links = [];
-  if (t.tmdb) links.push(`<a href="https://www.themoviedb.org/${t.tipo === 'serie' ? 'tv' : 'movie'}/${t.tmdb}" target="_blank" rel="noopener noreferrer">TMDB</a>`);
-  if (t.tmdb && t.tipo === 'filme') links.push(`<a href="https://letterboxd.com/tmdb/${t.tmdb}/" target="_blank" rel="noopener noreferrer">Letterboxd</a>`);
-  if (t.imdb) links.push(`<a href="https://www.imdb.com/title/${esc(t.imdb)}/" target="_blank" rel="noopener noreferrer">IMDb</a>`);
-
   abrirModal({
     classe: 'tela-cheia ficha-modal',
-    topo: `<div class="modal-cabecalho"><button type="button" class="botao-icone" data-acao="fechar-modal" aria-label="Fechar">${icone('fechar')}</button></div>`,
-    corpo: `<div class="ficha-fundo${fundo ? '' : ' sem-fundo'}"${fundo ? ` style="--fundo:url('${esc(fundo)}')"` : ''}></div>
-      <div class="ficha-miolo">
-        <div class="ficha-cabecalho">
-          <div class="ficha-poster">${posterHTML(t, { tamanho: 'w342', dobro: 'w500' })}</div>
-          <div>
-            <h2 class="ficha-titulo">${esc(nomeDe(t))}</h2>
-            ${outro ? `<p class="ficha-original">${esc(outro)}</p>` : ''}
-            <p class="ficha-meta">${partes.map(p => `<span>${esc(p)}</span>`).join('')}</p>
-            <p class="ficha-publico" data-nota-publica${temNotaPublica(t) ? '' : ' hidden'}>${notaPublicaFichaHTML(t)}</p>
-          </div>
-        </div>
-        ${credito ? `<p class="detalhe" style="margin-top:14px">${esc(credito)}</p>` : ''}
+    topo: topoDaFichaHTML(),
+    corpo: `${cabecalhoDaFichaHTML(t)}
         <div class="ficha-acoes">
           <button type="button" class="botao primario" data-acao="registrar-titulo" data-id="${esc(t.id)}">${icone('mais', 18, { traco: 2.4 })}${vezes ? 'Registrar de novo' : 'Registrar'}</button>
           <button type="button" class="botao-coracao" data-acao="alternar-favorito" data-id="${esc(t.id)}" aria-pressed="${t.favorito}" aria-label="Favorito" title="${t.favorito ? 'Tirar dos favoritos' : 'Marcar como favorito'}">${icone('coracao', 22)}</button>
@@ -4038,16 +4783,16 @@ function abrirFicha(id, { destaque = '' } = {}) {
         ${t.generos.length ? `<div class="chips ficha-generos">${t.generos.map(g => `<span class="chip">${esc(GENERO_ROTULO[g])}</span>`).join('')}</div>` : ''}
         ${blocoSerie}
         <section class="ficha-bloco"><h3>No seu diário</h3>${historico}</section>
-        ${t.sinopse ? `<section class="ficha-bloco"><h3>Sinopse</h3><p class="sinopse${t.sinopse.length > 280 ? ' cortada' : ''}" data-sinopse>${esc(t.sinopse)}</p>${t.sinopse.length > 280 ? '<button type="button" class="link" data-acao="mostrar-sinopse" style="margin-top:6px">Ler tudo</button>' : ''}</section>` : ''}
-        ${t.elenco.length ? `<section class="ficha-bloco"><h3>Elenco</h3><p class="detalhe">${esc(juntarNomes(t.elenco))}</p></section>` : ''}
-        <section class="ficha-bloco" data-onde-assistir hidden><h3>Onde assistir no Brasil</h3><div data-provedores></div><p class="ajuda" style="margin-top:10px">Dados da JustWatch, via TMDB.</p></section>
-        ${links.length ? `<p class="links-externos">${links.join('')}</p>` : ''}
+        ${sinopseEElencoHTML(t)}
+        ${blocoOndeAssistirHTML(null)}
+        ${outrasNotasHTML(t)}
       </div>`,
     rodape: `<button type="button" class="botao perigo esquerda" data-acao="excluir-titulo" data-id="${esc(t.id)}">Excluir</button><button type="button" class="botao" data-acao="editar-titulo" data-id="${esc(t.id)}">Editar dados</button>`,
   });
   const alvo = destaque && document.querySelector('#modal .historico .destacado');
   if (alvo) alvo.scrollIntoView({ block: 'nearest' });
   carregarOndeAssistir(t);
+  carregarOutrasNotas(t);
 }
 
 async function carregarOndeAssistir(t) {
@@ -4080,13 +4825,109 @@ async function carregarOndeAssistir(t) {
     nota.hidden = !temNotaPublica(t);
   }
   const bloco = document.querySelector('#modal [data-onde-assistir]');
-  if (!bloco) return;
-  const prov = meta.provedores;
-  const linha = (lista, rotulo) => (lista.length ? `<p class="rotulo" style="margin:4px 0 8px">${rotulo}</p><div class="provedores">${lista.map(p => `<span class="provedor">${p.logo ? `<img src="${esc(TMDB_IMG + 'w92' + p.logo)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}${esc(p.nome)}</span>`).join('')}</div>` : '');
-  const html = linha(prov.assinatura, 'Incluído na assinatura ou grátis') + (prov.aluguel.length ? `<div style="margin-top:12px">${linha(prov.aluguel.slice(0, 6), 'Para alugar ou comprar')}</div>` : '');
-  if (!html) return;
+  const html = provedoresHTML(meta.provedores);
+  if (!bloco || !html) return;
   bloco.querySelector('[data-provedores]').innerHTML = html;
   bloco.hidden = false;
+}
+
+/* ===== Ficha de um título que ainda não está no diário ===== */
+
+function abrirFichaPrevia(previa, { emCartaz = false } = {}) {
+  const atual = estado.previaAberta;
+  const mesma = atual && atual.previa.tipo === previa.tipo && atual.previa.tmdb === previa.tmdb;
+  estado.previaAberta = { previa, emCartaz, meta: mesma ? atual.meta : null };
+  estado.origemFicha = 'busca';
+  desenharFichaPrevia();
+  if (!estado.previaAberta.meta) carregarFichaPrevia();
+}
+
+function desenharFichaPrevia({ manterRolagem = false } = {}) {
+  const pa = estado.previaAberta;
+  if (!pa) return;
+  estado.formulario = null;
+  estado.fichaAberta = null;
+  const base = { ...pa.previa, ...(pa.meta || {}) };
+  const corpoAntes = document.querySelector('#modal .modal-corpo');
+  const rolagem = manterRolagem && corpoAntes ? corpoAntes.scrollTop : 0;
+  const estreia = base.estreiaBR || base.estreia;
+  const resumo = base.tipo === 'filme' && dataValida(estreia) && estreia > hojeISO() ? `Estreia em ${dataBR(estreia)}` : pa.emCartaz ? 'Nos cinemas' : '';
+  const reais = base.tipo === 'serie' ? temporadasReais(base) : [];
+  const temporadas = reais.length ? `<section class="ficha-bloco"><h3>Temporadas</h3><ul class="lista-temporadas">${reais.map(s => `<li>
+        <span class="marca-vista">${icone('check', 14, { traco: 2.6 })}</span>
+        <div><p class="nome-temporada">Temporada ${s.n}</p><p class="detalhe">${[s.episodios ? plural(s.episodios, 'episódio', 'episódios') : '', s.data ? (temporadaJaExibida(s) ? s.data.slice(0, 4) : `estreia em ${dataBR(s.data)}`) : ''].filter(Boolean).join(', ')}</p></div>
+        ${temporadaJaExibida(s) ? `<button type="button" class="botao pequeno" data-acao="registrar-previa" data-temporada="${s.n}">Registrar</button>` : ''}
+      </li>`).join('')}</ul></section>` : '';
+  const generos = (base.generos || []).filter(g => GENERO_ROTULO[g]);
+  abrirModal({
+    classe: 'tela-cheia ficha-modal',
+    topo: topoDaFichaHTML(),
+    corpo: `<div data-ficha-previa hidden></div>${cabecalhoDaFichaHTML(base, { ...base, id: `tmdb-${base.tipo}-${base.tmdb}` })}
+        <div class="ficha-acoes">
+          <button type="button" class="botao primario" data-acao="registrar-previa">${icone('mais', 18, { traco: 2.4 })}Registrar</button>
+          ${botaoQueroVerPrevia(base, 'ficha', 0, 'botao-quero grande')}
+          ${resumo ? `<span class="detalhe">${esc(resumo)}</span>` : ''}
+        </div>
+        ${generos.length ? `<div class="chips ficha-generos">${generos.map(g => `<span class="chip">${esc(GENERO_ROTULO[g])}</span>`).join('')}</div>` : ''}
+        ${pa.meta ? '' : '<p class="ajuda" style="margin-top:18px" data-carregando-ficha>Carregando os detalhes…</p>'}
+        ${sinopseEElencoHTML(base)}
+        ${temporadas}
+        ${blocoOndeAssistirHTML(base.provedores)}
+        ${outrasNotasHTML(base)}
+      </div>`,
+  });
+  if (rolagem) {
+    const corpo = document.querySelector('#modal .modal-corpo');
+    if (corpo) corpo.scrollTop = rolagem;
+  }
+  carregarOutrasNotas(base);
+}
+
+async function carregarFichaPrevia() {
+  const pa = estado.previaAberta;
+  if (!pa || !chaveTMDB()) return;
+  let meta = null;
+  try {
+    meta = await detalhesDoTMDB(pa.previa.tipo, pa.previa.tmdb);
+  } catch (e) {
+    meta = null;
+  }
+  if (estado.previaAberta !== pa) return;
+  if (meta) pa.meta = meta;
+  const aberta = document.querySelector('#modal [data-ficha-previa]');
+  if (!aberta) return;
+  if (meta) {
+    desenharFichaPrevia({ manterRolagem: true });
+  } else {
+    const aviso = document.querySelector('#modal [data-carregando-ficha]');
+    if (aviso) aviso.textContent = 'Sem conexão com o TMDB para trazer os detalhes agora.';
+  }
+}
+
+function registrarDaPrevia(temporada) {
+  const pa = estado.previaAberta;
+  if (!pa) return;
+  const base = pa.meta || pa.previa;
+  const existente = tituloDoTmdb(base.tipo, base.tmdb);
+  abrirFormularioRegistro({
+    previa: base, tituloId: existente ? existente.id : null, emCartaz: pa.emCartaz, voltarPrevia: true,
+    temporada: temporada ? Number(temporada) : undefined,
+  });
+}
+
+function verFichaDoFormulario() {
+  const f = estado.formulario;
+  if (!f) return;
+  if (f.voltarPrevia && estado.previaAberta) { desenharFichaPrevia(); return; }
+  const t = f.tituloId ? tituloPorId(f.tituloId) : null;
+  if (t) { abrirFicha(t.id); return; }
+  if (f.meta && f.tmdb) abrirFichaPrevia({ ...f.meta, tmdb: f.tmdb, tipo: f.tipoTitulo }, { emCartaz: f.emCartaz });
+}
+
+function baseDaFichaAberta() {
+  if (estado.fichaAberta) return tituloPorId(estado.fichaAberta);
+  const pa = estado.previaAberta;
+  return pa ? { ...pa.previa, ...(pa.meta || {}) } : null;
 }
 
 async function excluirTitulo(id) {
@@ -6104,6 +6945,14 @@ function reabrirFicha(id, opcoes = {}) {
   if (novo) novo.scrollTop = rolagem;
 }
 
+// Escolheu onde assistiu: o resumo mostra a escolha e as opções se fecham de novo.
+function escolheuOnde(form) {
+  if (!form) return;
+  atualizarResumoOnde(form);
+  const caixa = form.querySelector('details[data-onde]');
+  if (caixa && caixa.open) setTimeout(() => { caixa.open = false; }, 220);
+}
+
 function escolherArquivo(para, aceita) {
   const campo = document.querySelector('[data-arquivo]');
   estado.arquivoPara = para;
@@ -6142,14 +6991,16 @@ async function guardarETestarChave(contexto, botao) {
     }
     texto = 'Chave guardada. Sem internet agora para testar; o teste acontece na primeira busca.';
   }
-  estado.busca.vitrine = null;
-  estado.busca.erroVitrine = '';
+  estado.busca.explorar = {};
+  estado.busca.erroExplorar = '';
+  estado.busca.grade = null;
+  estado.provedoresBR = {};
   estado.cacheDetalhes.clear();
   alterar(() => { dados.preferencias.chaveTMDB = valor; }, { renderizar: false });
   avisar(texto);
   if (contexto === 'busca') {
     atualizarConteudoBusca();
-    carregarVitrineNaBusca();
+    carregarExplorarNaBusca();
     const busca = document.querySelector('[data-busca-tmdb]');
     if (busca) busca.focus();
   } else if (contexto === 'importacao') {
@@ -6198,7 +7049,17 @@ const ACOES = {
   'abrir-titulo': b => abrirFicha(b.dataset.id, { destaque: b.dataset.registro || '' }),
   'editar-registro': b => {
     const r = registroPorId(b.dataset.id);
-    if (r) abrirFormularioRegistro({ tituloId: r.titulo, registroId: r.id, voltarFicha: r.titulo });
+    if (r) abrirFormularioRegistro({ tituloId: r.titulo, registroId: r.id, voltarFicha: estado.fichaAberta === r.titulo ? r.titulo : null });
+  },
+  'ver-ficha-form': () => verFichaDoFormulario(),
+  'registrar-previa': b => registrarDaPrevia(b.dataset.temporada),
+  'voltar-previa': () => desenharFichaPrevia(),
+  'tentar-notas': () => {
+    const base = baseDaFichaAberta();
+    const alvo = document.querySelector('#modal [data-notas-conteudo]');
+    if (!base || !alvo) return;
+    alvo.innerHTML = conteudoOutrasNotasHTML(base, 'carregando');
+    carregarOutrasNotas(base);
   },
   'excluir-registro': b => excluirRegistro(b.dataset.id),
   'excluir-titulo': b => excluirTitulo(b.dataset.id),
@@ -6226,13 +7087,16 @@ const ACOES = {
     b.remove();
   },
   'escolher-resultado': b => escolherResultado(b.dataset.lista, Number(b.dataset.indice)),
-  'tipo-busca': b => {
-    estado.busca.tipo = b.dataset.valor;
-    document.querySelectorAll('[data-acao="tipo-busca"]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-    estado.busca.resultados = null;
-    executarBusca();
+  'tipo-busca': b => trocarTipoBusca(b.dataset.valor === 'serie' ? 'serie' : 'filme'),
+  'genero-busca': b => escolherGeneroBusca(b.dataset.valor || ''),
+  'ordem-genero': b => trocarOrdemGenero(b.dataset.valor),
+  'mais-genero': () => carregarGradeGenero({ mais: true }),
+  'recarregar-explorar': () => {
+    estado.busca.erroExplorar = '';
+    atualizarConteudoBusca();
+    carregarExplorarNaBusca();
   },
-  'voltar-busca': () => abrirBusca(),
+  'voltar-busca': () => abrirBusca({ voltando: true }),
   'registro-manual': () => {
     const termo = estado.busca.termo.trim();
     abrirFormularioRegistro({ manual: true, veioDaBusca: true });
@@ -6574,6 +7438,7 @@ function ligarEventos() {
     if (el.dataset.estava === '1') {
       el.checked = false;
       if (estado.formulario) estado.formulario.ondeTocado = true;
+      escolheuOnde(el.closest('form'));
     }
     el.dataset.estava = '';
   }, true);
@@ -6624,6 +7489,7 @@ function ligarEventos() {
       if (!el.value.trim()) executarBusca();
       else estado.buscaTimer = setTimeout(executarBusca, 380);
     }
+    if (el.name === 'data' && el.closest('form[data-form="registro"]')) atualizarQuando(el.closest('form'));
   });
 
   document.addEventListener('change', e => {
@@ -6653,15 +7519,7 @@ function ligarEventos() {
     }
     const form = el.closest('form[data-form="registro"]');
     if (!form || !f) return;
-    if (el.name === 'quando') {
-      const campoData = form.querySelector('[data-campo-data]');
-      campoData.hidden = el.value !== 'outra';
-      if (el.value === 'outra') {
-        const data = campoData.querySelector('input');
-        if (!data.value) data.value = ontemISO();
-        try { data.showPicker(); } catch (erro) { data.focus(); }
-      }
-    }
+    if (el.name === 'data' || el.name === 'sem-data') atualizarQuando(form);
     if (el.name === 'm-tipo') {
       f.tipoTitulo = el.value;
       form.querySelector('[data-bloco-serie]').hidden = el.value !== 'serie';
@@ -6672,7 +7530,10 @@ function ligarEventos() {
     if (el.name === 'temporada') { f.temporadaTocada = true; atualizarSituacaoSugerida(form); }
     if (el.name === 'situacao') f.situacaoTocada = true;
     if (el.name === 'revisto') f.revistoTocado = true;
-    if (el.name === 'onde') f.ondeTocado = true;
+    if (el.name === 'onde') {
+      f.ondeTocado = true;
+      escolheuOnde(form);
+    }
     if (el.name === 'genero') {
       f.generosTocados = true;
       const resumo = form.querySelector('[data-resumo-generos]');
@@ -6701,12 +7562,14 @@ function ligarEventos() {
     if (!img || img.tagName !== 'IMG') return;
     const poster = img.closest('.poster');
     if (poster) poster.classList.add('falhou');
-    else if (img.closest('.provedor')) img.remove();
+    else if (img.closest('.provedor, .destaque')) img.remove();
   }, true);
 
   $('#modal').addEventListener('close', () => {
     estado.fichaAberta = null;
     estado.formulario = null;
+    estado.previaAberta = null;
+    estado.origemFicha = null;
   });
 
   window.addEventListener('popstate', e => {
